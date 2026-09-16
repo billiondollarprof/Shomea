@@ -59,6 +59,24 @@ promise.
 Wrote `README.md`, `DIRECTION.md`, `RESEARCH.md`, `CLAUDE.md`,
 `CURRENT.md`, `NOW.md` and this file.
 
-**Left for next time:** connect Cloudflare Pages, then the accuracy spike.
-Anthony owes a recording of real preaching before that spike can be
-measured.
+**Then built one screen, so that connecting Cloudflare would produce
+something worth opening.** A Vite and React app whose only page is the
+device check. It reads what the device supports, shows how much room the
+app is allowed and whether that room survives being unused, and opens the
+microphone with a live level bar so a lapel mic can be tested in the real
+room. It records nothing and sends nothing anywhere.
+
+It is deliberately a diagnostic and not a piece of the product. Anthony has
+no laptop, so this is the only way he can find out what his own hardware
+does, and it answers four of the unconfirmed items in `RESEARCH.md`
+section 7 without anybody guessing.
+
+Two things were wrong on the first look and were fixed: a line telling him
+to tap a button "below" when the button was above, and the status dots
+centring against labels that had wrapped onto two lines. Screenshotted at
+320px, 390px and 1280px, the button clicked, and checked for content
+clipped past the right edge at five phone widths. Clean.
+
+**Left for next time:** Anthony connects Cloudflare Pages, which is the one
+thing only he can do. Then the accuracy spike, which also needs a recording
+of real preaching from him.

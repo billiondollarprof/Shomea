@@ -17,9 +17,20 @@ Anthony has a phone and an iPad, no laptop. **He cannot open localhost.**
 So until this repository builds to a URL, he cannot look at anything that
 gets made, and every piece of work after this one is invisible to him.
 
+**The app is ready for this.** It builds in under a second and the first
+screen is already written, so the moment Pages is connected there is
+something real to open.
+
 - Connect this repository to Cloudflare Pages.
+  Build command `npm run build`. Output folder `dist`. Nothing else.
 - Confirm a branch push produces a preview URL.
-- Send him the URL and have him open it on his phone.
+- Anthony opens it on his phone and on his iPad.
+
+**The first screen is the device check**, and it is not decoration. It
+answers four of the unconfirmed questions in `RESEARCH.md` section 7 from
+the real hardware: the graphics chip, storage and whether it survives, the
+screen staying awake, and whether the lapel microphone is actually being
+heard.
 
 Free tier: 500 builds a month, unlimited static bandwidth. Plenty.
 

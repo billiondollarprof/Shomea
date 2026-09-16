@@ -11,10 +11,12 @@ Last updated: 2026-09-16.
 
 ## The short version
 
-**Nothing is built yet.** This is day one.
+**The documents and one page exist. Nothing else does.**
 
-What exists is the thinking: the research is done, the decisions are made,
-and the documents are written. No code, no app, no deployment.
+The research is done, the decisions are made, and there is a working app
+with a single screen: the device check. It is not part of the product. It
+is the measuring tape, built so Anthony can find out what his own phone and
+iPad can actually do by opening one link.
 
 ---
 
@@ -27,6 +29,18 @@ and the documents are written. No code, no app, no deployment.
   as unconfirmed in section 7 of that file.
 - **The decisions below.** Settled, not up for rediscussion unless
   something changes.
+- **The app builds.** Vite and React. `npm run build` produces `dist` in
+  under a second. Cloudflare Pages needs no configuration beyond the build
+  command and the output folder.
+- **`src/DeviceCheck.jsx`, the device check screen.** It reads whether the
+  device has a usable graphics chip, whether it can hold the app offline,
+  whether it can keep the screen awake, and how much room the app is
+  allowed. It opens the microphone and shows a live level bar, so a lapel
+  mic can be tested in the real room. It records nothing.
+- **Looked at, not just built.** Screenshotted at 320px, 390px and 1280px.
+  The microphone button was clicked and the state change confirmed.
+  Checked for content clipped past the right edge at five phone widths:
+  clean at all of them.
 
 That is all. Everything else on this page is "not yet".
 
@@ -57,9 +71,9 @@ That is all. Everything else on this page is "not yet".
 
 Everything. Listed so nobody assumes otherwise:
 
-- No app. No `package.json`, no build, no dependencies installed.
-- No Cloudflare Pages project. **No preview URL, which means Anthony
-  currently cannot see anything.** This is the first blocker to clear.
+- No Cloudflare Pages project. **No preview URL, which means Anthony still
+  cannot see the device check on his own phone.** This is the one blocker
+  left, and it is the only thing that needs him.
 - No speech model running anywhere.
 - No Bible text downloaded or bundled.
 - No reference detection.
@@ -88,11 +102,12 @@ re-downloads every week and the offline promise is broken. Unconfirmed.
 
 These are waiting on him. They are not blocked on code.
 
-1. **Record 10 to 15 minutes of real preaching**, on the lapel mic he
+1. **Connect Cloudflare Pages** to this repository. Build command
+   `npm run build`, output folder `dist`. Nothing else. This is the first
+   one, because until it is done he cannot see anything that gets built.
+2. **Record 10 to 15 minutes of real preaching**, on the lapel mic he
    intends to use, with verse references said naturally. This is the input
    for the accuracy spike and the project cannot be measured without it.
-2. **Connect Cloudflare Pages** to this repository, so a preview URL
-   exists.
 3. **Email Thomas Nelson** about NKJV permission for a single church's
    display use.
 4. **Email BroadStreet Publishing** about The Passion Translation. Low
