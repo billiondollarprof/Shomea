@@ -11,40 +11,52 @@ that cannot hear "Ephesians".
 
 ---
 
-## 1. Hear a real service. Everything else waits.
+## 1. Match the book names by sound. This is the whole thing.
 
-**Done and waiting on Anthony.** The listening test is built and live at
-https://shomea.pages.dev. Nothing else in this list can be sized properly
-until it has met a real preacher.
+**Anthony's first real test proved where the win is.** Moonshine heard
+"Exodus chapter 6 verse 1" perfectly. It heard a bare "verse number one" as
+"Best number line". The difference is the book name: with it, everything
+after lands; without it, there is nothing to hold onto.
 
-What he does:
+And every failure it did make is recoverable by sound:
 
-1. At home, on wifi, open the site, go to the listening test, pick
-   **Moonshine Base** and tap Start listening. Let it download and prove it
-   works. Doing this in a church car park on mobile data is how a test gets
-   abandoned.
-2. At the service, tap Start listening and leave the phone alone.
-3. Afterwards, tap **Save the log as a file** and send the file.
+    "Like toast one one"          ->  Titus 1:1
+    "Provide chapter 2 verse 1"   ->  Proverbs 2:1
 
-**The number that comes out of it:** of the verse references actually
-spoken, how many came back right enough to find. Write it into
-`RESEARCH.md` section 8.
+So:
 
-If Moonshine cannot cope, try Whisper Base on the same recording. That
-comparison is the whole point of having five models on one screen.
+- A table of the 66 books, their short forms and how people actually say
+  them.
+- Match by sound, not spelling, so "like toast" reaches Titus.
+- **A number is only believed when a confident book match came just before
+  it.** A bare number is noise and must be thrown away. `DIRECTION.md`:
+  never show the wrong verse.
+- Score every candidate, and keep the screen blank below the bar.
+
+Measure against the transcripts already in `RESEARCH.md` section 8, then
+against a real service.
 
 ---
 
-## 2. Make the words findable
+## 2. Switch between the models by itself
 
-Only worth doing once step 1 has produced real transcripts, because it has
-to be tuned against what the model actually produced and not against clean
-text.
+Anthony's brief: nobody should be choosing a model. It should choose.
 
-- Match the 66 book names by sound, not spelling, so "a fee shins" reaches
-  "Ephesians". `RESEARCH.md` section 1, option A.
-- Measure again. The jump between the two numbers decides whether a
-  Whisper cascade is needed at all.
+The shape, and it only works once step 1 exists, because step 1 is what
+produces the confidence score:
+
+1. Moonshine listens to everything. It is fast and it is the better
+   listener in a room.
+2. When a piece of audio looks like it holds a reference but the book match
+   is weak, that same two to four seconds goes to Whisper.
+3. Whisper's answer wins when it is more confident.
+
+**Whisper has to be proved working first.** It failed every time in the
+first test because of a bug in our own code, now fixed, so nobody yet knows
+whether it is any good on this accent. Retry it before building the switch
+on top of it.
+
+Until then the model chooser stays on `/dev`, where only Anthony sees it.
 
 ---
 

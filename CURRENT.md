@@ -11,14 +11,15 @@ Last updated: 2026-09-16.
 
 ## The short version
 
-**It is live at https://shomea.pages.dev and it listens.**
+**It is live at https://shomea.pages.dev and it has heard a real voice.**
 
-Three screens: the verse display, the listening test, and the device check.
-The speech model is wired up and can be swapped between five choices. The
-Bible text is not in yet, so the display shows an example verse.
+Two addresses. **`/` is the verse display and it is all the church ever
+sees.** **`/dev` is the listening test and the device check, and nothing
+links to it.**
 
-Nothing has been heard at a real service yet. That is the next thing, and
-it is the only thing that matters.
+Moonshine heard "Exodus chapter 6 verse 1" perfectly. It heard a bare
+"verse number one" as "Best number line". That gap is the work, and the way
+through it is written up in `NOW.md` step 1.
 
 ---
 
@@ -42,10 +43,18 @@ it is the only thing that matters.
 - **Five models to choose between**, Moonshine Base and Tiny, Whisper Base,
   Small and Tiny. Switching stops the listening first, so one log can never
   mix two models. `src/listening/models.js`.
-- **The log, and a way to get it off the phone.** Every piece of audio makes
-  one line: the time, what it heard, how long it took, how loud it was.
-  Save as a file, or copy the lot. No audio is kept and nothing is uploaded.
-  `src/shared/sessionLog.js`.
+  **This chooser is temporary.** It is on `/dev` because Anthony needs to
+  compare. The finished app chooses by itself. `NOW.md` step 2.
+- **The look.** Sora and DM Sans, carried over from Anthony's other work.
+  A wine accent used sparingly. **Light and dark, switched in the menu**,
+  with every colour a token declared twice in `styles.css`.
+- **The display is a slide, not a page.** Landscape first, built for a
+  projector. Reference, a rule, then the verse filling the middle.
+- **The log, and three ways to get it off the phone.** Every piece of audio
+  makes one line: the time, what it heard, how long it took, how loud it
+  was. **Send the log** opens WhatsApp or email straight from the phone.
+  There is also save as a file and copy the lot. No audio is kept and
+  nothing is uploaded on its own. `src/shared/sessionLog.js`.
 - **The verse display.** Full screen, never scrolls, and the verse is sized
   by measuring the real box rather than counting characters. Eight dark
   colours plus a colour picker, and the words retint themselves to match.
@@ -92,14 +101,20 @@ That is all. Everything else on this page is "not yet".
 
 Everything. Listed so nobody assumes otherwise:
 
-- **Nothing has been transcribed at a real service.** The pipeline is
-  written and has never met a preacher. Until it has, the one question that
-  decides this project is still open.
+- **Nothing has been transcribed at a real service.** It has heard Anthony
+  in a room. A forty minute sermon in a hall is a different thing.
+- **Whisper has never actually run.** It failed every time in the first test
+  because of a bug in our own code, now fixed. Nobody yet knows whether it
+  is any good here.
+- **Nothing matches a book name yet.** It hears words. It does not know that
+  "Like toast one one" is Titus 1:1.
+- **Nothing switches model by itself.** Anthony picks one on `/dev`.
 - **No Bible text.** The display shows an example verse.
-- **No reference detection.** It hears words. It does not yet know that
-  "Ephesians chapter two" is a place to look.
 - **No verse log, no version switching.** The "give me another version"
   behaviour is designed and not built.
+- **No way to read a log remotely.** Sending it from the phone works.
+  Anthony reading it from anywhere, without somebody at the church tapping
+  send, does not exist yet.
 - **No service worker.** So "offline" today means offline after a recent
   visit, not offline for ever. The model is kept by the browser's own cache
   and nothing guarantees it survives a week.
@@ -128,12 +143,13 @@ re-downloads every week and the offline promise is broken. Unconfirmed.
 
 These are waiting on him. They are not blocked on code.
 
-1. **Take the listening test to a service.** Open the site, pick a model,
-   tap Start listening, leave it running. Then Save the log as a file and
-   send it. That file is the accuracy spike.
-2. **Warm it up at home first, on wifi.** The model downloads the first
-   time. Doing that in the church car park on mobile data is how a test
-   gets abandoned.
+1. **Retry Whisper Base on /dev.** It has never run. The bug that killed it
+   is fixed. Say three or four references at it and send the log.
+2. **Take it to a service.** Warm the model up at home on wifi first. Then
+   tap Start listening and leave the phone alone. **Send the log**
+   afterwards.
+3. **Get the Good News and Passion Translation text** if a free copy can be
+   found. See the note in `DIRECTION.md` section 3 about where it goes.
 3. **Email Thomas Nelson** about NKJV permission for a single church's
    display use.
 4. **Email BroadStreet Publishing** about The Passion Translation. Low

@@ -10,6 +10,13 @@
 // The moment it is, this screen does not change: it is already being handed
 // a reference and a body of text and it does not care where they came from.
 //
+// IT IS A SLIDE, NOT A PAGE
+// -------------------------
+// It is built for a projector, which is wide and short. Think of a
+// PowerPoint slide: a quiet line of reference at the top, a rule under it,
+// the verse filling the middle, nothing else. On a phone held upright it
+// still works, but landscape is what it is for and what it is tuned to.
+//
 // The rules this screen obeys
 // ---------------------------
 // It holds one verse. Not a list, not a history, not a sidebar. A person at
@@ -61,7 +68,7 @@ const EXAMPLE = {
 // only produces something nobody can read anyway.
 
 const SMALLEST = 18;
-const LARGEST = 220;
+const LARGEST = 260;
 
 function useFittedText(text, ready) {
   const boxRef = useRef(null);
@@ -143,6 +150,7 @@ export default function Display({ background, verse }) {
       <p className="display-reference" style={{ color: colours.quiet }}>
         {shown.reference}
         <span className="display-version">{shown.version}</span>
+        <span className="display-rule" aria-hidden="true" />
       </p>
 
       <div className="display-box" ref={boxRef}>

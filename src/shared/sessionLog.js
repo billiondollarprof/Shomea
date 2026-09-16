@@ -133,6 +133,38 @@ export function downloadText(text, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+// Send it straight out of the phone, to WhatsApp or email or anything else
+// the phone offers. This is how a log reaches somebody who is not in the
+// building, without Shomea needing a server of its own.
+//
+// It tries the file first, because a file is what somebody can read
+// properly. If the phone will not share files it shares the text instead,
+// and if it will not share at all it says so, so the caller can fall back
+// to the download.
+export async function shareLog(text, filename) {
+  if (typeof navigator === "undefined" || !navigator.share) return "cannot";
+
+  try {
+    const file = new File([text], filename, { type: "text/plain" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "Shomea listening log" });
+      return "shared";
+    }
+  } catch (problem) {
+    // A refusal here is usually the person tapping cancel. Fall through to
+    // the text attempt rather than treating it as a failure.
+    if (problem && problem.name === "AbortError") return "cancelled";
+  }
+
+  try {
+    await navigator.share({ title: "Shomea listening log", text });
+    return "shared";
+  } catch (problem) {
+    if (problem && problem.name === "AbortError") return "cancelled";
+    return "cannot";
+  }
+}
+
 export async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);

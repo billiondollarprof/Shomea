@@ -2,9 +2,14 @@
 //
 // Build configuration for Shomea.
 //
-// Why base is './': the app is deployed to Cloudflare Pages, and preview
-// deployments live on a branch subdomain. Relative paths work on every one
-// of them without a rebuild.
+// Why base is '/': the app has real addresses now, and /dev is one of them.
+// With a relative base, opening /dev would make the browser look for the
+// JavaScript under /dev/assets/, which does not exist, and the page would
+// come up blank. Cloudflare serves production and previews from the root of
+// their own domain, so '/' is right for both.
+//
+// public/_redirects sends every unknown path to index.html, which is what
+// lets /dev load at all instead of returning a 404 from the host.
 //
 // Never add a proxy or a dev server rewrite that the production build does
 // not also have. Anthony has no laptop, so he only ever sees the built
@@ -50,7 +55,7 @@ import react from "@vitejs/plugin-react";
 // first, and check the sizes above against what the runtime now ships.
 
 export default defineConfig({
-  base: "./",
+  base: "/",
   plugins: [react()],
 
   resolve: {

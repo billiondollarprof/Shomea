@@ -135,15 +135,24 @@ async function transcribe({ id, audio, modelId }) {
 
   const startedAt = performance.now();
   try {
-    // Whisper needs to be told this is English and that we want words, not
-    // a translation. Moonshine is English only and takes neither, so the
-    // options are only passed where they belong.
-    const isWhisper = modelId.toLowerCase().includes("whisper");
-    const options = isWhisper
-      ? { language: "english", task: "transcribe", return_timestamps: false }
-      : {};
-
-    const output = await transcriber(audio, options);
+    // NOTHING IS PASSED HERE, AND THAT IS THE FIX.
+    //
+    // This used to send { language: "english", task: "transcribe" } to any
+    // model with "whisper" in its name. Every single Whisper model then
+    // failed, on a real phone, with:
+    //
+    //   Cannot specify `task` or `language` for an English-only model.
+    //
+    // The models on the list are the ".en" ones. They only speak English,
+    // so telling them which language to use is not helpful, it is an error.
+    // Those two options belong to the multilingual builds only.
+    //
+    // Moonshine is English only too and never took them.
+    //
+    // So neither family wants them, and the safe thing is to send nothing.
+    // If a multilingual Whisper is ever added to models.js, this is the line
+    // that has to learn the difference. Until then, do not add it back.
+    const output = await transcriber(audio);
     const text = (output && output.text ? output.text : "").trim();
 
     say({

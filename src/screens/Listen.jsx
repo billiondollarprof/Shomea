@@ -38,6 +38,7 @@ import {
   asText,
   downloadText,
   copyText,
+  shareLog,
 } from "../shared/sessionLog.js";
 
 export default function Listen() {
@@ -151,9 +152,20 @@ export default function Listen() {
     userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "not said",
   };
 
+  const stampedName = () =>
+    `shomea-log-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.txt`;
+
   const saveFile = () => {
-    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
-    downloadText(asText(lines, about), `shomea-log-${stamp}.txt`);
+    downloadText(asText(lines, about), stampedName());
+  };
+
+  // The first choice on a phone. It opens WhatsApp, email, anything, so the
+  // log reaches somebody who is not in the building. If the phone will not
+  // share, it quietly saves the file instead rather than doing nothing.
+  const sendIt = async () => {
+    const text = asText(lines, about);
+    const what = await shareLog(text, stampedName());
+    if (what === "cannot") downloadText(text, stampedName());
   };
 
   const copyEverything = async () => {
@@ -326,11 +338,19 @@ export default function Listen() {
           )}
         </div>
 
-        <div className="button-row">
-          <button type="button" className="button" onClick={saveFile}>
-            Save the log as a file
+        <button type="button" className="button" onClick={sendIt}>
+          Send the log
+        </button>
+
+        <div className="button-row" style={{ marginTop: 8 }}>
+          <button type="button" className="button button-quiet" onClick={saveFile}>
+            Save it as a file
           </button>
-          <button type="button" className="button button-quiet" onClick={copyEverything}>
+          <button
+            type="button"
+            className="button button-quiet"
+            onClick={copyEverything}
+          >
             {copied ? "Copied" : "Copy it all"}
           </button>
         </div>

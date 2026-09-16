@@ -392,6 +392,59 @@ and update this file with what you found.
   the list several times over. Item 2 of section 7 is answered for Android.
   **It is still open for iPhone.**
 
+### 2026-09-16, Anthony speaking into the phone. THE FIRST REAL RESULTS.
+
+**Moonshine Base works, and the pattern in its failures is the whole plan.**
+
+What it got right:
+
+- "I want you to turn to the book of Exodus chapter 6 verse 1." Exact.
+- "Exodus two, verse number three." Exact.
+- "Somebody opened the book of Proverbs 13, 18." Exact.
+
+What it got wrong:
+
+- "verse number one" on its own came back as **"That's number one"** and as
+  **"Best number line"**.
+- "Titus 1:1" came back as **"Like toast one one"**.
+- "Proverbs chapter 2 verse 1" came back as **"Provide chapter 2 verse 1"**.
+
+**Anthony spotted the pattern himself and he is right: the book name is the
+anchor.** When he says the book first, the model has context and gets the
+rest right. When he says a bare "verse number one" with nothing before it,
+it has nothing to hold onto and produces noise.
+
+**This is the single most useful finding so far**, because every one of
+those failures is recoverable without a better model:
+
+- "Like toast" against "Titus": both are T-T-S by sound.
+- "Provide" against "Proverbs": the same first four letters.
+
+That is exactly option A in section 1. **Match the 66 book names by sound,
+then trust a number that follows a confident book match and ignore a number
+that follows nothing.** Build that before reaching for a second model.
+
+**Moonshine is also the better listener in a room.** Anthony: Moonshine
+"seems more efficient at picking actual sounds", while Whisper "picks any
+sound, surrounding sound, or whatever". That matches what Moonshine was
+built for.
+
+**Whisper failed completely, and it was our bug, not Whisper's.** Every
+Whisper model returned:
+
+    Cannot specify `task` or `language` for an English-only model.
+
+The worker was passing `language` and `task` to models whose names end in
+`.en`. Those builds only speak English and reject both options. Fixed on
+2026-09-16 by passing neither, to any model. **Whisper has still never been
+measured on a real voice.** It has to be retried before any comparison
+between the two families means anything.
+
+**A failure before the model has loaded is not a model failure.** The log
+showed "No model loaded" when he spoke during the download, and "Failed to
+fetch" when the network dropped mid download. Both are honest and both look
+alarming. Worth making them read as what they are.
+
 ### 2026-09-16, found while building, not by reading
 
 - **Cloudflare's 25 MiB file cap bites on the very first build.** The

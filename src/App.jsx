@@ -2,61 +2,73 @@
 //
 // THE SHELL. It decides which screen is showing and holds the menu.
 //
+// The addresses
+// -------------
+//   /       the verse display. This is what the church sees, and it is all
+//           they ever see.
+//   /dev    the listening test and the device check. Anthony only.
+//
+// There is no link from one to the other, on purpose. See Dev.jsx.
+//
 // Why there is no navigation bar
 // ------------------------------
-// Anthony's brief, and he is right: the app has no navigation. It has one
-// screen that matters, the verse, and a projector must never show a menu
-// bar across the top of it.
+// The app has one screen that matters, and a projector must never show a
+// menu across the top of a verse. So there is a single button in the
+// corner, it fades back on the display, and during a service nobody goes
+// near it.
 //
-// So there is a single button in the corner. It opens a panel, the panel
-// closes, and the screen underneath is untouched. During a service nobody
-// goes near it.
-//
-// Why the display has no page padding
-// -----------------------------------
-// Every other screen is a document and sits in a column. The display is not
-// a document, it is a wall. It takes the whole window.
+// Why routing is written by hand
+// ------------------------------
+// There are two addresses. A routing library is thousands of lines to
+// choose between two strings. If this ever grows to five or six, bring one
+// in. Not before.
 //
 // Sections
 // --------
-//   1. The sections there are
-//   2. Remembering where you were
+//   1. Which address are we at
+//   2. Remembering the screen colour
 //   3. The menu
 //   4. The shell
 
 import { useCallback, useEffect, useState } from "react";
 import Display from "./screens/Display.jsx";
-import Listen from "./screens/Listen.jsx";
-import Device from "./screens/Device.jsx";
+import Dev from "./screens/Dev.jsx";
 import { PALETTE, DEFAULT_BACKGROUND } from "./shared/displayTheme.js";
+import { useAppTheme } from "./shared/appTheme.js";
 
 // ---------------------------------------------------------------------------
-// 1. The sections there are
+// 1. Which address are we at
 // ---------------------------------------------------------------------------
 
-const SECTIONS = [
-  {
-    id: "display",
-    name: "Display",
-    note: "What the church sees",
-  },
-  {
-    id: "listen",
-    name: "Listening test",
-    note: "Take this to a service",
-  },
-  {
-    id: "device",
-    name: "This device",
-    note: "What it can and cannot do",
-  },
-];
+function readPath() {
+  try {
+    return window.location.pathname.replace(/\/+$/, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function useAddress() {
+  const [path, setPath] = useState(readPath);
+
+  useEffect(() => {
+    const onBack = () => setPath(readPath());
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
+  }, []);
+
+  const goTo = useCallback((next) => {
+    window.history.pushState({}, "", next);
+    setPath(readPath());
+  }, []);
+
+  return { path, goTo };
+}
 
 // ---------------------------------------------------------------------------
-// 2. Remembering where you were
+// 2. Remembering the screen colour
 // ---------------------------------------------------------------------------
 
-const SECTION_KEY = "shomea.section";
 const BACKGROUND_KEY = "shomea.background";
 
 function remembered(key, fallback) {
@@ -67,28 +79,26 @@ function remembered(key, fallback) {
   }
 }
 
-function remember(key, value) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // Remembering is a convenience. Never let it break the app.
-  }
-}
-
 export default function App() {
-  // Listening is the default for now, because that is the work in hand.
-  // When the Bible text lands, change this to "display".
-  const [section, setSection] = useState(() => remembered(SECTION_KEY, "listen"));
+  const { path, goTo } = useAddress();
+  const { theme, choose } = useAppTheme();
   const [background, setBackground] = useState(() =>
     remembered(BACKGROUND_KEY, DEFAULT_BACKGROUND),
   );
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => remember(SECTION_KEY, section), [section]);
-  useEffect(() => remember(BACKGROUND_KEY, background), [background]);
+  const onDev = path === "/dev";
 
-  // Escape closes the menu. A projector operator who opened it by mistake
-  // should be able to get out without hunting for the right place to tap.
+  useEffect(() => {
+    try {
+      localStorage.setItem(BACKGROUND_KEY, background);
+    } catch {
+      // A convenience. Never let it break the app.
+    }
+  }, [background]);
+
+  // Escape closes the menu. Somebody who opened it by mistake mid-service
+  // should not have to hunt for the right place to tap.
   useEffect(() => {
     if (!menuOpen) return undefined;
     const onKey = (event) => {
@@ -98,22 +108,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
-  const go = useCallback((id) => {
-    setSection(id);
-    setMenuOpen(false);
-  }, []);
-
-  const onDisplay = section === "display";
-
   return (
-    <div className={onDisplay ? "shell shell-bare" : "shell"}>
+    <div className={onDev ? "shell" : "shell shell-display"}>
       {/* ------------------------------------------------------------------
           3. The menu
           ------------------------------------------------------------------ */}
 
       <button
         type="button"
-        className="hamburger"
+        className={menuOpen ? "hamburger hamburger-open" : "hamburger"}
         aria-label={menuOpen ? "Close the menu" : "Open the menu"}
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen((open) => !open)}
@@ -136,56 +139,89 @@ export default function App() {
           <nav className="menu">
             <p className="menu-title">Shomea</p>
 
-            <ul className="menu-list">
-              {SECTIONS.map((entry) => (
-                <li key={entry.id}>
-                  <button
-                    type="button"
-                    className={
-                      entry.id === section ? "menu-item menu-item-on" : "menu-item"
-                    }
-                    onClick={() => go(entry.id)}
-                  >
-                    <span className="menu-item-name">{entry.name}</span>
-                    <span className="menu-item-note">{entry.note}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {/* The screen colour only means anything on the display, so it
+                is only offered there. A control that does nothing where it
+                is shown is a control that teaches people not to trust the
+                app. */}
+            {!onDev ? (
+              <div>
+                <p className="menu-subtitle">Screen colour</p>
+                <p className="menu-help">
+                  The words change with it, so they always read.
+                </p>
 
-            <div className="menu-colours">
-              <p className="menu-subtitle">Screen colour</p>
+                <div className="swatches">
+                  {PALETTE.map((colour) => (
+                    <button
+                      key={colour.id}
+                      type="button"
+                      className={
+                        colour.background.toLowerCase() === background.toLowerCase()
+                          ? "swatch swatch-on"
+                          : "swatch"
+                      }
+                      style={{ background: colour.background }}
+                      aria-label={colour.name}
+                      title={colour.name}
+                      onClick={() => setBackground(colour.background)}
+                    />
+                  ))}
+                </div>
+
+                <label className="custom-colour">
+                  <input
+                    type="color"
+                    value={background}
+                    onChange={(event) => setBackground(event.target.value)}
+                  />
+                  <span>Or pick your own</span>
+                </label>
+              </div>
+            ) : null}
+
+            <div className={onDev ? "" : "menu-block"}>
+              <p className="menu-subtitle">This app</p>
               <p className="menu-help">
-                The words change with it, so they always read.
+                Light or dark, for the screens you work on. The verse screen
+                keeps its own colour either way.
               </p>
 
-              <div className="swatches">
-                {PALETTE.map((colour) => (
-                  <button
-                    key={colour.id}
-                    type="button"
-                    className={
-                      colour.background.toLowerCase() === background.toLowerCase()
-                        ? "swatch swatch-on"
-                        : "swatch"
-                    }
-                    style={{ background: colour.background }}
-                    aria-label={colour.name}
-                    title={colour.name}
-                    onClick={() => setBackground(colour.background)}
-                  />
-                ))}
+              <div className="theme-switch">
+                <button
+                  type="button"
+                  className={
+                    theme === "light" ? "theme-option theme-option-on" : "theme-option"
+                  }
+                  onClick={() => choose("light")}
+                >
+                  Light
+                </button>
+                <button
+                  type="button"
+                  className={
+                    theme === "dark" ? "theme-option theme-option-on" : "theme-option"
+                  }
+                  onClick={() => choose("dark")}
+                >
+                  Dark
+                </button>
               </div>
-
-              <label className="custom-colour">
-                <input
-                  type="color"
-                  value={background}
-                  onChange={(event) => setBackground(event.target.value)}
-                />
-                <span>Or pick your own</span>
-              </label>
             </div>
+
+            {onDev ? (
+              <div className="menu-block">
+                <button
+                  type="button"
+                  className="button button-quiet"
+                  onClick={() => {
+                    goTo("/");
+                    setMenuOpen(false);
+                  }}
+                >
+                  Back to the verse screen
+                </button>
+              </div>
+            ) : null}
           </nav>
         </>
       ) : null}
@@ -194,9 +230,7 @@ export default function App() {
           4. The shell
           ------------------------------------------------------------------ */}
 
-      {section === "display" ? <Display background={background} /> : null}
-      {section === "listen" ? <Listen /> : null}
-      {section === "device" ? <Device /> : null}
+      {onDev ? <Dev /> : <Display background={background} />}
     </div>
   );
 }

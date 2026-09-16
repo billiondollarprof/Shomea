@@ -1,99 +1,233 @@
 /*
  * src/styles.css
  *
- * The look of Shomea.
+ * THE LOOK OF SHOMEA.
  *
- * The ground is a cool near black rather than pure black, because a room
- * with a projector in it is never truly dark and pure black reads as a dead
- * screen. Everything is sized to be read at a distance, not held close.
+ * Two faces, carried over from Anthony's other work so this feels like the
+ * same hand made it: Sora for anything large, DM Sans for everything a
+ * person reads at normal size. Large type is set at 500 or 600, never 800.
+ * A 60px headline at 800 is shouting where 600 is confidence.
  *
- * Dark is the only theme. A church hall with the lights down does not want
- * a white screen, and this app has no daytime use.
+ * THE ACCENT IS WINE, and it is used sparingly. A deep red on a near black
+ * ground reads as considered. The same red everywhere reads as a warning.
+ * So: one accent on the thing you are meant to touch, and nothing else.
  *
- * Never make anything smaller to fit. If something does not fit, it is
- * saying too much.
+ * TWO THEMES, and dark is the default, because the app lives in a hall with
+ * the lights down. Light exists for setting it up in daylight. Every colour
+ * below is a token declared twice, so nothing is ever hard coded in a
+ * component. If you find yourself typing a hex value outside this file,
+ * stop and add a token instead.
+ *
+ * The fonts come from Google and the app has to work with no internet, so
+ * there is a real system stack behind them. Offline, the app still looks
+ * deliberate rather than broken. Do not remove the fallbacks.
+ *
+ * Sections
+ * --------
+ *   1. Fonts
+ *   2. Colour, both themes
+ *   3. Base
+ *   4. Page furniture
+ *   5. Panels and cards
+ *   6. Controls
+ *   7. The menu
+ *   8. The display, which is its own world
+ *   9. The listening test
+ *  10. Motion
  */
 
-:root {
-  --ground: #05060d;
-  --raised: #0c0e18;
-  --edge: #1c1f2e;
-  --ink: #f4f5f8;
-  --ink-soft: #9ba1b4;
+/* ==========================================================================
+   1. Fonts
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap");
+
+/* ==========================================================================
+   2. Colour, both themes
+   ==========================================================================
+   Dark is the default. Light is opt in, and both are declared here in full
+   rather than one being derived from the other, because a derived theme
+   always has three places where it looks wrong.
+   ========================================================================== */
+
+:root,
+:root[data-theme="dark"] {
+  --ground: #0a0a0e;
+  --raised: #121218;
+  --raised-high: #191921;
+  --edge: #24242e;
+  --edge-soft: #1b1b23;
+
+  --ink: #f6f5f8;
+  --ink-soft: #9a97a6;
+  --ink-faint: #6a6776;
+
+  /* Wine. The deep one carries fills, the bright one carries text and
+     anything that has to read against the dark. */
+  --wine: #8e1b33;
+  --wine-lift: #a82440;
+  --wine-text: #e8607d;
+  --wine-glow: rgba(168, 36, 64, 0.22);
+
   --good: #4ade80;
-  --workable: #fbbf24;
-  --bad: #f87171;
-  --accent: #7c8cff;
+  --warn: #fbbf24;
+  --bad: #f8717d;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 28px rgba(0, 0, 0, 0.32);
 
   color-scheme: dark;
 }
+
+:root[data-theme="light"] {
+  --ground: #faf9fb;
+  --raised: #ffffff;
+  --raised-high: #ffffff;
+  --edge: #e7e4ec;
+  --edge-soft: #f0eef4;
+
+  --ink: #14131b;
+  --ink-soft: #625f70;
+  --ink-faint: #8d8a9b;
+
+  --wine: #8e1b33;
+  --wine-lift: #77152a;
+  --wine-text: #8e1b33;
+  --wine-glow: rgba(142, 27, 51, 0.12);
+
+  --good: #10893e;
+  --warn: #9a6700;
+  --bad: #b3261e;
+
+  --shadow: 0 1px 2px rgba(20, 19, 27, 0.06), 0 8px 24px rgba(20, 19, 27, 0.07);
+
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   3. Base
+   ========================================================================== */
 
 * {
   box-sizing: border-box;
 }
 
 html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  padding: 0;
   background: var(--ground);
-}
-
-body {
   color: var(--ink);
-  font-family:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  font-size: 17px;
-  line-height: 1.55;
+  font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 260ms ease, color 260ms ease;
 }
 
-/* 16px of breathing room at every phone width, and no sideways scroll. */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* Thin scrollbars, so panels stay light. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--edge) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--edge);
+  border-radius: 999px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--wine-text);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ==========================================================================
+   4. Page furniture
+   ========================================================================== */
+
+.shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 .page {
   max-width: 720px;
   margin: 0 auto;
-  padding: 40px 16px 64px;
+  padding: 52px 16px 72px;
   overflow-x: clip;
 }
 
-/* --- Masthead ----------------------------------------------------------- */
+.masthead {
+  margin-bottom: 36px;
+  animation: rise 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
 
 .eyebrow {
-  margin: 0 0 8px;
-  font-size: 13px;
-  letter-spacing: 0.18em;
+  margin: 0 0 10px;
+  font-family: "Sora", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--wine-text);
 }
 
 .masthead h1 {
-  margin: 0 0 12px;
-  font-size: clamp(30px, 7vw, 42px);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+  font-size: clamp(30px, 7vw, 40px);
+  line-height: 1.12;
+  font-weight: 600;
 }
 
 .standfirst {
-  margin: 0 0 40px;
+  margin: 0;
   color: var(--ink-soft);
-  max-width: 52ch;
+  max-width: 54ch;
 }
 
-/* --- Panels ------------------------------------------------------------- */
+/* ==========================================================================
+   5. Panels and cards
+   ========================================================================== */
 
 .panel {
   background: var(--raised);
   border: 1px solid var(--edge);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px 20px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  animation: rise 460ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 
 .panel h2 {
   margin: 0 0 10px;
-  font-size: 20px;
-  letter-spacing: -0.01em;
+  font-size: 19px;
+  font-weight: 600;
 }
 
 .panel-intro {
@@ -105,34 +239,480 @@ body {
 .panel-foot {
   margin: 20px 0 0;
   color: var(--ink-soft);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .big-number {
   margin: 0 0 6px;
-  font-size: clamp(36px, 10vw, 52px);
+  font-family: "Sora", sans-serif;
+  font-size: clamp(36px, 10vw, 48px);
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   line-height: 1;
 }
 
-/* --- The level meter ---------------------------------------------------- */
+/* ==========================================================================
+   6. Controls
+   ========================================================================== */
+
+.button {
+  appearance: none;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 15px 20px;
+  background: var(--wine);
+  color: #fff;
+  font-family: "Sora", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, transform 120ms ease;
+}
+
+.button:hover {
+  background: var(--wine-lift);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button-stop {
+  background: transparent;
+  border: 1px solid var(--wine-text);
+  color: var(--wine-text);
+}
+
+.button-stop:hover {
+  background: var(--wine-glow);
+}
+
+.button-quiet {
+  background: transparent;
+  border: 1px solid var(--edge);
+  color: var(--ink);
+}
+
+.button-quiet:hover {
+  background: var(--edge-soft);
+}
+
+.button-row {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 520px) {
+  .button-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.button + .button-quiet {
+  margin-top: 8px;
+}
+
+.problem {
+  margin: 14px 0 0;
+  color: var(--bad);
+  font-size: 15px;
+}
+
+/* ==========================================================================
+   7. The menu
+   ==========================================================================
+   No navigation bar anywhere. A projector must never show a menu across the
+   top of a verse. One button in the corner, and it gets out of the way.
+   ========================================================================== */
+
+.hamburger {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--edge);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--raised) 78%, transparent);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 160ms ease, opacity 260ms ease;
+}
+
+.hamburger:hover {
+  border-color: var(--wine-text);
+}
+
+/* On the display it fades back, so it is there without being part of the
+   picture. It comes up on hover or focus. */
+.shell-display .hamburger {
+  opacity: 0.22;
+  background: transparent;
+  border-color: transparent;
+}
+
+.shell-display .hamburger:hover,
+.shell-display .hamburger:focus-visible {
+  opacity: 1;
+}
+
+/* WITH THE MENU OPEN IT IS A CLOSE BUTTON, AND IT IS SITTING ON THE MENU,
+   NOT ON THE VERSE. So it drops every one of the display tricks above and
+   goes back to ordinary colours.
+
+   This is a fix, not a flourish. The blend mode that makes the bars read
+   against any verse colour made them invisible against the light menu, and
+   the close button came out as a single grey dot. */
+.hamburger-open {
+  opacity: 1 !important;
+  background: color-mix(in srgb, var(--raised) 78%, transparent) !important;
+  border-color: var(--edge) !important;
+}
+
+.hamburger-open .bars i {
+  background: var(--ink) !important;
+  mix-blend-mode: normal !important;
+}
+
+.bars {
+  display: grid;
+  gap: 4px;
+  width: 17px;
+}
+
+.bars i {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  color: var(--ink);
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.3, 1), opacity 140ms ease;
+}
+
+.shell-display .bars i {
+  background: #fff;
+  mix-blend-mode: difference;
+}
+
+.bars-x i:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.bars-x i:nth-child(2) {
+  opacity: 0;
+}
+
+.bars-x i:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.menu-behind {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  border: 0;
+  padding: 0;
+  background: rgba(3, 3, 6, 0.55);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  animation: fade 200ms ease both;
+}
+
+.menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 35;
+  width: min(340px, 88vw);
+  padding: 24px 20px 40px;
+  overflow-y: auto;
+  background: var(--raised);
+  border-left: 1px solid var(--edge);
+  animation: slide-in 280ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.menu-title {
+  margin: 6px 0 26px;
+  font-family: "Sora", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wine-text);
+}
+
+.menu-block {
+  border-top: 1px solid var(--edge);
+  padding-top: 22px;
+  margin-top: 22px;
+}
+
+.menu-subtitle {
+  margin: 0 0 4px;
+  font-family: "Sora", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.menu-help {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* --- The light and dark switch ------------------------------------------ */
+
+.theme-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: var(--edge-soft);
+  border-radius: 12px;
+  border: 1px solid var(--edge);
+}
+
+.theme-option {
+  border: 0;
+  border-radius: 9px;
+  padding: 10px 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.theme-option-on {
+  background: var(--raised-high);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+/* --- Screen colour swatches --------------------------------------------- */
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 2px solid var(--edge);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 160ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    border-color 160ms ease;
+}
+
+.swatch:hover {
+  transform: scale(1.06);
+}
+
+.swatch-on {
+  border-color: var(--wine-text);
+  box-shadow: 0 0 0 3px var(--wine-glow);
+}
+
+.custom-colour {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.custom-colour input {
+  width: 48px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--edge);
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   8. The display, which is its own world
+   ==========================================================================
+   It is a slide, not a page. It fills the screen, it never scrolls, and its
+   colours come from the chosen screen colour rather than from the theme
+   tokens above. The theme switch does not touch it, deliberately: the hall
+   is dark whatever the person setting it up prefers.
+
+   The verse is sized by Display.jsx measuring the real box. There is no
+   font-size for it here and there must never be one. An early version
+   guessed from the character count and the verse ran off the bottom of a
+   projector.
+   ========================================================================== */
+
+.display {
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  transition: background 320ms ease, color 320ms ease;
+  /* Landscape first. A projector is 16:9 and the padding is set in vh so it
+     stays proportionate when the screen is wide and short. */
+  padding: 8vh 7vw;
+  gap: 4vh;
+}
+
+/* A phone held upright is not what this is for, but it should still look
+   deliberate when somebody checks it on the way to church. */
+@media (orientation: portrait) {
+  .display {
+    padding: 7vh 7vw;
+    gap: 3vh;
+  }
+}
+
+.display-reference {
+  margin: 0;
+  text-align: center;
+  font-family: "Sora", sans-serif;
+  font-size: clamp(13px, 1.5vw, 22px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1.5;
+  animation: rise 500ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.display-rule {
+  display: block;
+  width: 44px;
+  height: 2px;
+  margin: 14px auto 0;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.display-version {
+  display: block;
+  margin-top: 12px;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
+  opacity: 0.68;
+}
+
+/* The box the verse must fit inside. Its measured size is what Display.jsx
+   works from, so it needs a real height, which 1fr gives it. */
+.display-box {
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.display-body {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-family: "Sora", sans-serif;
+  line-height: 1.24;
+  letter-spacing: -0.022em;
+  font-weight: 500;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  animation: rise 560ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.display-foot {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+  min-height: 1.2em;
+}
+
+/* ==========================================================================
+   9. The listening test
+   ========================================================================== */
+
+.choices {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  padding: 13px 15px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.choice:hover {
+  border-color: var(--ink-faint);
+}
+
+.choice-on {
+  border-color: var(--wine-text);
+  background: var(--wine-glow);
+}
+
+.choice-name {
+  display: block;
+  font-family: "Sora", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.choice-note {
+  display: block;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.choice-size {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 3px;
+}
 
 .meter {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .meter-track {
   position: relative;
-  height: 16px;
+  height: 14px;
   border-radius: 999px;
-  background: #171a28;
+  background: var(--edge-soft);
+  border: 1px solid var(--edge);
   overflow: hidden;
 }
 
 .meter-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--good));
+  background: linear-gradient(90deg, var(--wine), var(--wine-text));
   border-radius: 999px;
   transition: width 60ms linear;
 }
@@ -143,45 +723,102 @@ body {
   width: 2px;
   height: 100%;
   background: var(--ink);
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
-.meter-words {
-  margin: 10px 0 0;
+.meter-words,
+.status {
+  margin: 10px 0 18px;
   font-size: 15px;
   color: var(--ink-soft);
 }
 
-/* --- Buttons ------------------------------------------------------------ */
+.tallies {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
 
-.button {
-  appearance: none;
-  width: 100%;
-  border: 0;
-  border-radius: 10px;
-  padding: 15px 20px;
-  background: var(--accent);
-  color: #06070f;
-  font: inherit;
+.tally {
+  background: var(--edge-soft);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.tally-number {
+  display: block;
+  font-family: "Sora", sans-serif;
+  font-size: 20px;
   font-weight: 600;
-  cursor: pointer;
+  letter-spacing: -0.02em;
 }
 
-.button:active {
-  transform: translateY(1px);
+.tally-word {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+  line-height: 1.35;
 }
 
-.button-stop {
-  background: var(--bad);
+.transcript {
+  max-height: 46vh;
+  overflow-y: auto;
+  background: var(--ground);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  padding: 14px 15px;
+  margin-bottom: 18px;
 }
 
-.problem {
-  margin: 14px 0 0;
-  color: var(--bad);
+.transcript-empty {
+  margin: 0;
+  color: var(--ink-soft);
   font-size: 15px;
 }
 
-/* --- Result rows -------------------------------------------------------- */
+.said {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: 11px;
+  border-left: 2px solid var(--edge);
+}
+
+.said:last-child {
+  margin-bottom: 0;
+}
+
+.said-bad {
+  border-left-color: var(--bad);
+}
+
+.said-bad .said-what {
+  color: var(--bad);
+}
+
+.said-when {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.said-what {
+  display: block;
+}
+
+.said-ms {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Result rows on the device check ------------------------------------ */
 
 .rows {
   list-style: none;
@@ -206,13 +843,11 @@ body {
 }
 
 .row-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   flex: 0 0 auto;
-  background: var(--ink-soft);
-  /* Sit against the first line of the label, not the middle of a label
-     that has wrapped onto two lines. */
+  background: var(--ink-faint);
   margin-top: 9px;
 }
 
@@ -221,7 +856,7 @@ body {
 }
 
 .row-workable .row-dot {
-  background: var(--workable);
+  background: var(--warn);
 }
 
 .row-bad .row-dot {
@@ -229,26 +864,60 @@ body {
 }
 
 .row-label {
+  font-family: "Sora", sans-serif;
   font-weight: 600;
 }
 
 .row-detail {
-  margin: 4px 0 0 19px;
-  font-size: 14px;
-  color: var(--ink-soft);
+  margin: 4px 0 0 18px;
+  font-size: 13px;
+  color: var(--ink-faint);
 }
 
 .row-note {
-  margin: 8px 0 0 19px;
+  margin: 8px 0 0 18px;
   font-size: 15px;
 }
 
-/* --- Footer ------------------------------------------------------------- */
+/* --- Tabs on the dev page ----------------------------------------------- */
+
+/* Clear of the hamburger, which is fixed at the top right and would
+   otherwise sit on top of the second tab. */
+.tabs {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: var(--edge-soft);
+  border: 1px solid var(--edge);
+  border-radius: 13px;
+  margin-bottom: 24px;
+}
+
+.tab {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: "Sora", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.tab-on {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
 
 .footer {
   margin-top: 36px;
-  color: var(--ink-soft);
-  font-size: 15px;
+  color: var(--ink-faint);
+  font-size: 14px;
 }
 
 .footer p {
@@ -256,414 +925,56 @@ body {
 }
 
 /* ==========================================================================
-   THE SHELL AND THE MENU
+   10. Motion
    ==========================================================================
-   Added when the app grew past one screen. The rule from App.jsx holds
-   here: there is no navigation bar, only a button in the corner, because a
-   projector must never show a menu across the top of a verse.
+   Short, and only on arrival. Nothing here moves while somebody is reading.
    ========================================================================== */
 
-.shell {
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-.hamburger {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 40;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--edge);
-  border-radius: 12px;
-  background: rgba(8, 10, 18, 0.72);
-  backdrop-filter: blur(8px);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  padding: 0;
-}
-
-.bars {
-  display: grid;
-  gap: 4px;
-  width: 18px;
-}
-
-.bars i {
-  display: block;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--ink);
-  transition: transform 140ms ease, opacity 140ms ease;
-}
-
-.bars-x i:nth-child(1) {
-  transform: translateY(6px) rotate(45deg);
-}
-
-.bars-x i:nth-child(2) {
-  opacity: 0;
-}
-
-.bars-x i:nth-child(3) {
-  transform: translateY(-6px) rotate(-45deg);
-}
-
-.menu-behind {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  border: 0;
-  padding: 0;
-  background: rgba(2, 3, 8, 0.6);
-  cursor: pointer;
-}
-
-.menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 35;
-  width: min(320px, 86vw);
-  padding: 20px 18px 32px;
-  overflow-y: auto;
-  background: var(--raised);
-  border-left: 1px solid var(--edge);
-}
-
-.menu-title {
-  margin: 4px 0 22px;
-  font-size: 13px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.menu-list {
-  list-style: none;
-  margin: 0 0 28px;
-  padding: 0;
-}
-
-.menu-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: 0;
-  border-radius: 10px;
-  padding: 12px 12px;
-  margin-bottom: 4px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-}
-
-.menu-item-on {
-  background: #171b2b;
-}
-
-.menu-item-name {
-  display: block;
-  font-weight: 600;
-}
-
-.menu-item-note {
-  display: block;
-  font-size: 14px;
-  color: var(--ink-soft);
-}
-
-.menu-subtitle {
-  margin: 0 0 4px;
-  font-weight: 600;
-}
-
-.menu-help {
-  margin: 0 0 14px;
-  font-size: 14px;
-  color: var(--ink-soft);
-}
-
-.menu-colours {
-  border-top: 1px solid var(--edge);
-  padding-top: 20px;
-}
-
-.swatches {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.swatch {
-  aspect-ratio: 1;
-  border-radius: 10px;
-  border: 2px solid var(--edge);
-  cursor: pointer;
-  padding: 0;
-}
-
-.swatch-on {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 140, 255, 0.24);
-}
-
-.custom-colour {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  color: var(--ink-soft);
-}
-
-.custom-colour input {
-  width: 46px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--edge);
-  border-radius: 8px;
-  background: transparent;
-  cursor: pointer;
-}
-
-/* ==========================================================================
-   THE DISPLAY. The one screen the church sees.
-   ==========================================================================
-   It takes the whole window and it never scrolls. The verse is sized to fit
-   its box by Display.jsx, which measures the real box rather than guessing
-   from the number of characters. An earlier version guessed, and on a
-   projector the verse ran off the bottom of the screen.
-
-   So there is no font-size here for the verse. Do not add one back.
-   ========================================================================== */
-
-.display {
-  height: 100vh;
-  height: 100dvh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 3vh;
-  padding: 5vh 5vw;
-  overflow: hidden;
-  transition: background 220ms ease, color 220ms ease;
-}
-
-.display-reference {
-  margin: 0;
-  text-align: center;
-  font-size: clamp(14px, 1.7vw, 24px);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.display-version {
-  display: block;
-  margin-top: 4px;
-  letter-spacing: 0.05em;
-  text-transform: none;
-  font-weight: 400;
-  opacity: 0.7;
-}
-
-/* The box the verse has to fit inside. Its size is what Display.jsx
-   measures, so it must have a real height, which is what 1fr gives it. */
-.display-box {
-  min-height: 0;
-  min-width: 0;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
-
-.display-body {
-  margin: 0;
-  width: 100%;
-  text-align: center;
-  line-height: 1.22;
-  letter-spacing: -0.015em;
-  font-weight: 600;
-  text-wrap: balance;
-  overflow-wrap: break-word;
-}
-
-.display-foot {
-  margin: 0;
-  text-align: center;
-  font-size: 13px;
-  opacity: 0.6;
-  min-height: 1em;
-}
-
-/* ==========================================================================
-   THE LISTENING TEST
-   ========================================================================== */
-
-.choices {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.choice {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: 1px solid var(--edge);
-  border-radius: 10px;
-  padding: 12px 14px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-}
-
-.choice-on {
-  border-color: var(--accent);
-  background: #141829;
-}
-
-.choice-name {
-  display: block;
-  font-weight: 600;
-}
-
-.choice-note {
-  display: block;
-  font-size: 14px;
-  color: var(--ink-soft);
-}
-
-.choice-size {
-  display: block;
-  font-size: 13px;
-  color: var(--ink-soft);
-  opacity: 0.8;
-  margin-top: 2px;
-}
-
-.switch {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 15px;
-  color: var(--ink-soft);
-}
-
-.switch input {
-  margin-top: 4px;
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-}
-
-.status {
-  margin: 10px 0 18px;
-  font-size: 15px;
-  color: var(--ink-soft);
-}
-
-.tallies {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.tally {
-  background: #12151f;
-  border-radius: 10px;
-  padding: 12px 10px;
-  text-align: center;
-}
-
-.tally-number {
-  display: block;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.tally-word {
-  display: block;
-  font-size: 12px;
-  color: var(--ink-soft);
-  margin-top: 2px;
-}
-
-.transcript {
-  max-height: 46vh;
-  overflow-y: auto;
-  background: #0a0c14;
-  border: 1px solid var(--edge);
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 18px;
-}
-
-.transcript-empty {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 15px;
-}
-
-.said {
-  margin: 0 0 12px;
-  font-size: 15px;
-  line-height: 1.45;
-}
-
-.said:last-child {
-  margin-bottom: 0;
-}
-
-.said-bad .said-what {
-  color: var(--bad);
-}
-
-.said-when {
-  display: block;
-  font-size: 12px;
-  color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
-}
-
-.said-what {
-  display: block;
-}
-
-.said-ms {
-  display: block;
-  font-size: 12px;
-  color: var(--ink-soft);
-  opacity: 0.7;
-  font-variant-numeric: tabular-nums;
-}
-
-.button-row {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-@media (min-width: 520px) {
-  .button-row {
-    grid-template-columns: 1fr 1fr;
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.button-quiet {
-  background: transparent;
-  border: 1px solid var(--edge);
-  color: var(--ink);
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.button + .button-quiet {
-  margin-top: 8px;
+@keyframes slide-in {
+  from {
+    transform: translateX(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.panel:nth-of-type(2) {
+  animation-delay: 60ms;
+}
+
+.panel:nth-of-type(3) {
+  animation-delay: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
