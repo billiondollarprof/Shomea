@@ -1,4 +1,4 @@
-// src/DeviceCheck.jsx
+// src/screens/Device.jsx
 //
 // THE DEVICE CHECK. The first screen Shomea ever had.
 //
@@ -287,7 +287,7 @@ function Row({ check }) {
 // 5. The page
 // ---------------------------------------------------------------------------
 
-export default function DeviceCheck() {
+export default function Device() {
   const [checks, setChecks] = useState([]);
   const [storage, setStorage] = useState(null);
   const [storageRead, setStorageRead] = useState(false);

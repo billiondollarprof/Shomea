@@ -380,3 +380,34 @@ and update this file with what you found.
    own Bibles endpoint rather than from a blog. Confirm GNT is there and
    NKJV and TPT are not.
 8. **Whether your session can reach huggingface.co.**
+
+---
+
+## 8. PROVED ON REAL HARDWARE. These are no longer guesses.
+
+### 2026-09-16, Anthony's Android phone, on the deployed site
+
+- **The microphone works.** The level bar moved and read "Hearing you".
+- **Storage quota is 10,240 MB.** Ten gigabytes. Room for every model on
+  the list several times over. Item 2 of section 7 is answered for Android.
+  **It is still open for iPhone.**
+
+### 2026-09-16, found while building, not by reading
+
+- **Cloudflare's 25 MiB file cap bites on the very first build.** The
+  bundler folded the ONNX runtime's WebAssembly into the deployment and
+  produced a 26.8 MB file. That deploy would have been rejected.
+  The fix is the `onnxruntime-web-use-extern-wasm` resolve condition in
+  `vite.config.js`. Read the comment there before touching it. With it, the
+  whole deployment is 680 KB.
+- **Transformers.js already fetches the right runtime from a CDN itself**,
+  choosing between four builds based on the browser and pinning the version
+  it was tested against. Do not override that by hand. The code that does
+  it is worth reading: `dist/transformers.web.js`, search `wasmPathSuffix`.
+- **WebGPU cannot be self-hosted on Pages.** The runtime build it needs is
+  27 MB. Putting it on R2 is real work, so the app runs on the plain route
+  today. This is a hosting limit, not a preference.
+- **`onnxruntime-node` cannot install in this environment.** Its postinstall
+  downloads a native binary and the proxy blocks it. `.npmrc` carries
+  `ignore-scripts=true`, which is why the install works. It is not needed:
+  nothing here runs in Node.

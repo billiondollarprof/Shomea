@@ -11,53 +11,40 @@ that cannot hear "Ephesians".
 
 ---
 
-## 1. A preview URL. Nothing else can be seen until this exists.
+## 1. Hear a real service. Everything else waits.
 
-Anthony has a phone and an iPad, no laptop. **He cannot open localhost.**
-So until this repository builds to a URL, he cannot look at anything that
-gets made, and every piece of work after this one is invisible to him.
+**Done and waiting on Anthony.** The listening test is built and live at
+https://shomea.pages.dev. Nothing else in this list can be sized properly
+until it has met a real preacher.
 
-**The app is ready for this.** It builds in under a second and the first
-screen is already written, so the moment Pages is connected there is
-something real to open.
+What he does:
 
-- Connect this repository to Cloudflare Pages.
-  Build command `npm run build`. Output folder `dist`. Nothing else.
-- Confirm a branch push produces a preview URL.
-- Anthony opens it on his phone and on his iPad.
+1. At home, on wifi, open the site, go to the listening test, pick
+   **Moonshine Base** and tap Start listening. Let it download and prove it
+   works. Doing this in a church car park on mobile data is how a test gets
+   abandoned.
+2. At the service, tap Start listening and leave the phone alone.
+3. Afterwards, tap **Save the log as a file** and send the file.
 
-**The first screen is the device check**, and it is not decoration. It
-answers four of the unconfirmed questions in `RESEARCH.md` section 7 from
-the real hardware: the graphics chip, storage and whether it survives, the
-screen staying awake, and whether the lapel microphone is actually being
-heard.
+**The number that comes out of it:** of the verse references actually
+spoken, how many came back right enough to find. Write it into
+`RESEARCH.md` section 8.
 
-Free tier: 500 builds a month, unlimited static bandwidth. Plenty.
+If Moonshine cannot cope, try Whisper Base on the same recording. That
+comparison is the whole point of having five models on one screen.
 
 ---
 
-## 2. The accuracy spike. Before any design work.
+## 2. Make the words findable
 
-The one number that decides the project.
+Only worth doing once step 1 has produced real transcripts, because it has
+to be tuned against what the model actually produced and not against clean
+text.
 
-- Start from `huggingface/transformers.js-examples/moonshine-web`. Do not
-  build the audio pipeline from scratch.
-- A rough page: it listens, it prints what it heard. Nothing else.
-- Deploy it to the preview URL.
-- Anthony plays real sermon recordings at it, on his phone.
-
-**Measure this: out of 50 spoken verse references, how many come back
-right?**
-
-- Compare Moonshine tiny, Moonshine base and Whisper base.
-- Then add the fuzzy and phonetic book-name matching from `RESEARCH.md`
-  section 1, option A, and measure again.
-
-**That second number decides whether a cascade is needed.** Write both
-numbers into `RESEARCH.md`.
-
-Blocked on Anthony supplying a recording. Everything else in this step can
-be built while waiting.
+- Match the 66 book names by sound, not spelling, so "a fee shins" reaches
+  "Ephesians". `RESEARCH.md` section 1, option A.
+- Measure again. The jump between the two numbers decides whether a
+  Whisper cascade is needed at all.
 
 ---
 

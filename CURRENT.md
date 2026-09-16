@@ -11,12 +11,14 @@ Last updated: 2026-09-16.
 
 ## The short version
 
-**The documents and one page exist. Nothing else does.**
+**It is live at https://shomea.pages.dev and it listens.**
 
-The research is done, the decisions are made, and there is a working app
-with a single screen: the device check. It is not part of the product. It
-is the measuring tape, built so Anthony can find out what his own phone and
-iPad can actually do by opening one link.
+Three screens: the verse display, the listening test, and the device check.
+The speech model is wired up and can be swapped between five choices. The
+Bible text is not in yet, so the display shows an example verse.
+
+Nothing has been heard at a real service yet. That is the next thing, and
+it is the only thing that matters.
 
 ---
 
@@ -29,18 +31,37 @@ iPad can actually do by opening one link.
   as unconfirmed in section 7 of that file.
 - **The decisions below.** Settled, not up for rediscussion unless
   something changes.
-- **The app builds.** Vite and React. `npm run build` produces `dist` in
-  under a second. Cloudflare Pages needs no configuration beyond the build
-  command and the output folder.
+- **It is deployed.** https://shomea.pages.dev, from `main`, on Cloudflare
+  Pages. Build command `npm run build`, output folder `dist`.
+  **The whole deployment is 680 KB.** The model and the engine under it are
+  fetched from a CDN the first time and then kept by the browser.
+- **The listening pipeline, end to end.** Microphone, five second pieces
+  with a one second overlap, silence skipped, a speech model in a worker so
+  the screen never freezes, and the words back on the page.
+  `src/listening/`.
+- **Five models to choose between**, Moonshine Base and Tiny, Whisper Base,
+  Small and Tiny. Switching stops the listening first, so one log can never
+  mix two models. `src/listening/models.js`.
+- **The log, and a way to get it off the phone.** Every piece of audio makes
+  one line: the time, what it heard, how long it took, how loud it was.
+  Save as a file, or copy the lot. No audio is kept and nothing is uploaded.
+  `src/shared/sessionLog.js`.
+- **The verse display.** Full screen, never scrolls, and the verse is sized
+  by measuring the real box rather than counting characters. Eight dark
+  colours plus a colour picker, and the words retint themselves to match.
+  `src/screens/Display.jsx` and `src/shared/displayTheme.js`.
+- **A hamburger in the corner and no navigation bar**, because a projector
+  must never show a menu across the top of a verse.
 - **`src/DeviceCheck.jsx`, the device check screen.** It reads whether the
   device has a usable graphics chip, whether it can hold the app offline,
   whether it can keep the screen awake, and how much room the app is
   allowed. It opens the microphone and shows a live level bar, so a lapel
   mic can be tested in the real room. It records nothing.
-- **Looked at, not just built.** Screenshotted at 320px, 390px and 1280px.
-  The microphone button was clicked and the state change confirmed.
-  Checked for content clipped past the right edge at five phone widths:
-  clean at all of them.
+- **Looked at, not just built.** Every screen screenshotted at phone and
+  projector widths. The menu opened, a colour changed, the display measured
+  to confirm it never scrolls at 320px, 390px or 1280px. Checked for content
+  clipped past the right edge on all three screens at five phone widths:
+  clean everywhere. No page errors.
 
 That is all. Everything else on this page is "not yet".
 
@@ -71,15 +92,20 @@ That is all. Everything else on this page is "not yet".
 
 Everything. Listed so nobody assumes otherwise:
 
-- No Cloudflare Pages project. **No preview URL, which means Anthony still
-  cannot see the device check on his own phone.** This is the one blocker
-  left, and it is the only thing that needs him.
-- No speech model running anywhere.
-- No Bible text downloaded or bundled.
-- No reference detection.
-- No screen.
-- No verse log, no version switching.
-- No service worker, nothing cached, nothing offline.
+- **Nothing has been transcribed at a real service.** The pipeline is
+  written and has never met a preacher. Until it has, the one question that
+  decides this project is still open.
+- **No Bible text.** The display shows an example verse.
+- **No reference detection.** It hears words. It does not yet know that
+  "Ephesians chapter two" is a place to look.
+- **No verse log, no version switching.** The "give me another version"
+  behaviour is designed and not built.
+- **No service worker.** So "offline" today means offline after a recent
+  visit, not offline for ever. The model is kept by the browser's own cache
+  and nothing guarantees it survives a week.
+- **No graphics chip.** The runtime build WebGPU needs is 27 MB and
+  Cloudflare Pages refuses anything over 25 MiB. It runs on the plain route.
+  Fixing it means R2.
 
 ---
 
@@ -102,12 +128,12 @@ re-downloads every week and the offline promise is broken. Unconfirmed.
 
 These are waiting on him. They are not blocked on code.
 
-1. **Connect Cloudflare Pages** to this repository. Build command
-   `npm run build`, output folder `dist`. Nothing else. This is the first
-   one, because until it is done he cannot see anything that gets built.
-2. **Record 10 to 15 minutes of real preaching**, on the lapel mic he
-   intends to use, with verse references said naturally. This is the input
-   for the accuracy spike and the project cannot be measured without it.
+1. **Take the listening test to a service.** Open the site, pick a model,
+   tap Start listening, leave it running. Then Save the log as a file and
+   send it. That file is the accuracy spike.
+2. **Warm it up at home first, on wifi.** The model downloads the first
+   time. Doing that in the church car park on mobile data is how a test
+   gets abandoned.
 3. **Email Thomas Nelson** about NKJV permission for a single church's
    display use.
 4. **Email BroadStreet Publishing** about The Passion Translation. Low

@@ -77,6 +77,40 @@ centring against labels that had wrapped onto two lines. Screenshotted at
 320px, 390px and 1280px, the button clicked, and checked for content
 clipped past the right edge at five phone widths. Clean.
 
-**Left for next time:** Anthony connects Cloudflare Pages, which is the one
-thing only he can do. Then the accuracy spike, which also needs a recording
-of real preaching from him.
+**Then, the same day, the listening pipeline went in**, because Anthony had
+a service in five hours and wanted to record at it.
+
+Moonshine and Whisper both wired up, five models on one screen, the model
+running in a worker so the display never freezes. Audio is cut into five
+second pieces with a one second overlap so a reference spoken across the
+join is not lost, and silence is skipped rather than sent. Every piece makes
+one line in a log that saves as a text file, so a result never has to be
+read off a screenshot.
+
+**Two things were found by building that no amount of reading would have
+found.**
+
+The first build produced a 26.8 MB WebAssembly file. Cloudflare Pages
+refuses anything over 25 MiB, so it would simply have been rejected. The
+bundler had folded in the ONNX runtime, which the library fetches from a CDN
+by itself anyway. The fix is one resolve condition,
+`onnxruntime-web-use-extern-wasm`. The whole deployment is now 680 KB.
+
+The second was in the display. It sized the verse by counting characters and
+capped the column at "26ch", which was being measured against the small body
+text. On a phone it looked fine. On a projector the column came out about
+220 pixels wide and the verse ran off the bottom of the screen. It now
+measures the real box and shrinks the text until it fits, so it cannot
+scroll. That bug only appeared because the screen was looked at on a
+projector-shaped window instead of trusted.
+
+The verse display also got its colours: eight dark ones and a picker, with
+the words retinting themselves so a person cannot pick dark grey on black by
+accident and find out during a service. A hamburger in the corner, and no
+navigation bar, because a projector must never show a menu above a verse.
+
+**Anthony's phone reported 10,240 MB of storage.** Room for every model
+several times over, and one of the two big unknowns answered for Android.
+It is still open for iPhone.
+
+**Left for next time:** the service. Everything else waits on what it hears.

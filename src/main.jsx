@@ -7,11 +7,11 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import DeviceCheck from "./DeviceCheck.jsx";
+import App from "./App.jsx";
 import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <DeviceCheck />
+    <App />
   </React.StrictMode>,
 );
