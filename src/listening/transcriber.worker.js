@@ -31,10 +31,18 @@
 //   4. The message door
 
 import { pipeline, env } from "@huggingface/transformers";
+import { isLocal } from "./models.js";
 
-// Never look for a model inside our own deployment. There is none there,
-// and letting it try produces a confusing 404 before it gives up and goes
-// to the CDN anyway.
+// WHERE A MODEL IS LOOKED FOR, and it is one of two places.
+//
+// Most models come from the Hugging Face CDN. One does not: the model
+// trained on Nigerian speech is converted in a workflow and kept in our own
+// R2 storage, served back through functions/models/[[path]].js at /models/.
+//
+// These two settings are flipped per model in load() below rather than set
+// once here, because looking in the wrong place produces a 404 and then a
+// confusing fallback rather than an honest error.
+env.localModelPath = "/models/";
 env.allowLocalModels = false;
 
 // Keep model files in the browser cache, so the second run is instant and
@@ -93,6 +101,11 @@ async function load({ modelId, device, dtype }) {
   loadedKey = null;
 
   say({ type: "loading", modelId, device, dtype });
+
+  // One place or the other, never both. See the note at the top.
+  const here = isLocal(modelId);
+  env.allowLocalModels = here;
+  env.allowRemoteModels = !here;
 
   try {
     transcriber = await pipeline("automatic-speech-recognition", modelId, {
