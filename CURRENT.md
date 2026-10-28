@@ -2,6 +2,57 @@
 
 **What is actually built. Blunt about what is not.**
 
+---
+
+## ANTHONY'S OPEN REQUESTS
+
+Read this first, before anything else in this file. A request he makes
+that is not built in the same turn goes here immediately, in his own
+words, with the date. It comes off only when it is built and checked.
+
+### Open
+
+- **2026-10-28. Cloudflare for everything, drop Supabase.** "Use
+  Cloudflare for the both the storage and database, anything, since we
+  want to make it to be offline, I don't know if there's any need adding
+  Supabase, since Cloudflare can do the job." Agreed and settled. See
+  Decided below.
+- **2026-10-28. Python in CI and CD, for testing and quality.** "Check
+  where you can use Python code and CI and CD for testing to ensure
+  everything is professional, the code is professional, clean, clear, you
+  know, the UI, everything."
+- **2026-10-28. Use a model trained on Nigerian speech.** Researched, see
+  `RESEARCH.md` section 8. Not built. Needs the conversion workflow and
+  therefore needs the Cloudflare token.
+- **2026-09-16. Match the book names by sound.** `NOW.md` step 1. Still
+  the single most valuable thing on this list.
+- **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
+  with nobody choosing. `NOW.md` step 2.
+- **2026-09-16. Read the logs remotely**, so a problem at church can be
+  looked at from anywhere. Now possible with Cloudflare D1.
+- **2026-09-16. The verse log and "give me another version".**
+- **2026-10-28. The UI is not good enough yet.** "the interface, the UI is
+  not yet cool, but let's leave it first. When we finish what is more
+  important, we will now work on the UI." **Deliberately parked by him.
+  Do not spend time on it until he says.**
+
+### Decided
+
+- **2026-10-28. No Supabase. Cloudflare is the whole stack.** Pages for
+  the app, R2 for the model files, D1 for the logs, Pages Functions for
+  the one endpoint that writes them.
+- **2026-10-28. Not for sale.** "I don't even intend to commercialize
+  this... it just helps my portfolio." So non-commercial licences are
+  usable, including AfriSpeech. If that ever changes, the swappable layer
+  in `DIRECTION.md` section 3 is what makes it changeable.
+- **2026-09-16. Two addresses.** `/` for the church, `/dev` for Anthony.
+- **2026-09-16. Moonshine first.** It picks up speech where Whisper picks
+  up any noise in the room. Anthony's own observation, confirmed on his
+  phone.
+
+---
+
+
 This file is deliberately honest. Trust it over anything a screen says.
 `NOW.md` is what comes next. `DIRECTION.md` is what it is all for.
 

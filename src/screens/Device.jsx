@@ -30,6 +30,9 @@
 // and named in brackets after. That is the house rule from CLAUDE.md, not
 // an exception to it. The screens the church sees follow section 4 exactly.
 //
+// plain-words-exception: this page lives at /dev, nothing links to it, and
+// its only reader is Anthony. Naming the real terms here is the point.
+//
 // Sections in this file
 // ---------------------
 //   1. Reading what the device supports

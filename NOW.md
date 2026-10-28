@@ -11,6 +11,46 @@ that cannot hear "Ephesians".
 
 ---
 
+## 0. The Cloudflare token. Everything below waits on it.
+
+**Blocked on Anthony.** A Cloudflare API token in this repository's GitHub
+secrets, plus the account ID. The exact permissions are in the reply he was
+given on 2026-10-28.
+
+It unlocks three things at once, which is why it is step zero:
+
+- **R2** can hold model files, so a model bigger than Cloudflare Pages'
+  25 MiB cap becomes possible. That is what a Nigerian-accent Whisper
+  needs.
+- **D1** can hold the listening logs, so a problem at church can be looked
+  at from anywhere without somebody there tapping send.
+- **A workflow can push to both**, so none of it is manual.
+
+---
+
+## 0b. Convert a Nigerian-accent model, in CI
+
+`RESEARCH.md` section 8 has the models and why none of them can be used as
+they are. They are PyTorch and the browser needs ONNX.
+
+**This agent cannot reach huggingface.co. A GitHub Actions runner can.**
+Confirmed 2026-10-28. So the conversion is a workflow, in Python, and it is
+the job Anthony's CI idea was made for:
+
+1. Pull `NCAIR1/NigerianAccentedEnglish` (Whisper Small, Nigerian
+   government backed) or the Intron AfriSpeech model.
+2. Export to ONNX with Optimum, encoder and merged decoder.
+3. Quantise the decoder to int8. **Check the encoder separately**, because
+   other people's fine-tune conversions lost accuracy quantising it.
+4. Upload to R2.
+5. Add it to `src/listening/models.js` and compare it against Moonshine on
+   the same recording.
+
+Read each licence first. AfriSpeech is non-commercial, which suits a church
+app that is not for sale, and would not suit anything else.
+
+---
+
 ## 1. Match the book names by sound. This is the whole thing.
 
 **Anthony's first real test proved where the win is.** Moonshine heard

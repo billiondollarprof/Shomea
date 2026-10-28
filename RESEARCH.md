@@ -383,7 +383,89 @@ and update this file with what you found.
 
 ---
 
-## 8. PROVED ON REAL HARDWARE. These are no longer guesses.
+## 8. MODELS TRAINED ON NIGERIAN SPEECH. Researched 2026-10-28.
+
+Anthony asked whether anything open source has been trained on how
+Nigerians actually speak. **It has, and there is quite a lot of it.**
+
+### The dataset everything is built on
+
+**AfriSpeech-200.** 200 hours of Pan-African accented English, 67,577
+clips, 2,463 speakers. **67% of it is Nigerian accents.** Licensed
+CC BY-NC-SA 4.0, which means non-commercial use only. Shomea is a church
+app and not for sale, so that fits.
+
+The paper reports a fine-tuned Whisper gaining **16.2% average relative
+improvement** across accents over the plain model. That is a real gain and
+it is in exactly the direction this project needs.
+
+### The models, best first
+
+| Model | Base | Who made it |
+|---|---|---|
+| `intronhealth/afrispeech-whisper-medium-all` | Whisper Medium | Intron Health, who built AfriSpeech |
+| `NCAIR1/NigerianAccentedEnglish` | Whisper Small | Awarri, under Nigeria's Federal Ministry of Communications |
+| `DivineAngel317/whisper-small-nigerian-accented-english` | Whisper Small | 15 hours of Hausa, Igbo and Yoruba accented English |
+| `Modularcomputing/dynamic-asr` | Omnilingual ASR 1B | Nigerian English, Pidgin, Igbo, Yoruba, Hausa. 187 hours |
+
+**Whisper Small is the size to aim at.** Medium is roughly three times
+bigger and the 1B model is far too large for a phone browser.
+
+**Licences differ and must be read before anything ships.** AfriSpeech is
+non-commercial. NCAIR1 uses its own Open Source Research and Innovation
+Licence with extra conditions. Read each one.
+
+### THE PROBLEM, and it is the one worth solving
+
+**None of them are ONNX.** Every one is a PyTorch model, and the browser
+cannot run PyTorch. They have to be exported to ONNX and quantised first.
+
+That export needs Python, a few gigabytes of download and real compute.
+**It cannot happen in this repository and it cannot happen on Anthony's
+phone.**
+
+### THE ANSWER, and it is why Anthony's CI idea matters
+
+**GitHub Actions runners can reach Hugging Face. This agent session
+cannot.** Confirmed 2026-10-28: huggingface.co times out from here.
+
+So the conversion becomes a workflow:
+
+1. A runner pulls the Nigerian-accent model from Hugging Face.
+2. Python exports it to ONNX with Optimum, encoder and merged decoder.
+3. It quantises to int8 and checks the result against the original.
+4. It uploads the files to Cloudflare R2.
+5. The app loads them from R2 like any other model.
+
+That is Python in CI doing a job nothing else here can do, and it also
+solves self-hosting the model files, which Cloudflare Pages refuses
+because of the 25 MiB cap.
+
+**Two warnings found in other people's conversions of fine-tuned Whisper:**
+
+- **Quantising the encoder can cost accuracy.** One Hinglish conversion had
+  to keep the encoder at full precision and only shrink the decoder. Check
+  each half separately rather than quantising the lot.
+- **Fine-tunes often ship no alignment heads**, so word timings break. We
+  do not use word timings, so it does not matter here. Worth knowing.
+
+### Somebody has already solved the hard part
+
+**`ChurchPresenter`** on GitHub (GPL-3.0, and widely forked) is worship
+presentation software that **includes a Bible lookup engine that detects
+scripture references from speech.** That is the exact problem in `NOW.md`
+step 1.
+
+Read how they did it before writing ours. **GPL-3.0 means copying their
+code makes this project GPL too**, which is fine for a church app Anthony
+is not selling, and not fine if that ever changes. So read it for the
+approach, and write ours.
+
+Others worth a look for the display: `praisenter`, `CrossPresenter`.
+
+---
+
+## 9. PROVED ON REAL HARDWARE. These are no longer guesses.
 
 ### 2026-09-16, Anthony's Android phone, on the deployed site
 

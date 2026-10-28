@@ -62,7 +62,7 @@ export default function Listen() {
   // work and it waits until the accuracy question is answered.
   //
   // scripts/copy-ort.mjs holds the full list of sizes.
-  const device = "wasm";
+  const device = "wasm"; // plain-words-ok: a value, never shown on screen
   const dtype = "q8";
 
   // -------------------------------------------------------------------------
