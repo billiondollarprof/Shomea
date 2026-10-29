@@ -26,10 +26,11 @@ words, with the date. It comes off only when it is built and checked.
   is Python too. What is missing is a test that scores how well a
   transcript finds verse references, and that needs the book matcher
   first.
-- **2026-10-28. Use a model trained on Nigerian speech.** Researched in
-  `RESEARCH.md` section 8. **The pipeline to get one is built and pushed.**
-  Waiting on Anthony to run the workflow once, then on a real recording to
-  say whether it is actually better than Moonshine.
+- **2026-10-28. Use a model trained on Nigerian speech. BUILT AND LIVE.**
+  Converted on 2026-10-29 after eight runs, 274 MB, in R2 and served from
+  `/models/nigerian-whisper-small/`. Its card claims 20.7% word error
+  against 37.7% for stock Whisper Small. **Not yet heard a real voice**, so
+  that claim is untested here. That is the only thing left on it.
 - **2026-09-16. Match the book names by sound.** `NOW.md` step 1. Still
   the single most valuable thing on this list.
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,

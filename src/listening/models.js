@@ -9,10 +9,12 @@
 // then kept in the browser's cache. None of them live in this repository,
 // so adding one here costs nothing at build time.
 //
-// The sizes are what the browser actually downloads at dtype q8. They were
-// taken from search results and NOT from a download, because the session
-// that wrote this file could not reach huggingface.co. Correct them the
-// first time a real device reports something different.
+// The sizes are what the browser actually downloads at dtype q8.
+//
+// Nigerian Whisper's 274 MB is MEASURED, from the conversion that produced
+// it on 2026-10-29. The others are still from search results rather than a
+// download, because this session cannot reach huggingface.co. Correct them
+// the first time a real device reports something different.
 //
 // WHERE A MODEL COMES FROM
 // ------------------------
@@ -45,7 +47,7 @@ export const MODELS = [
     id: "nigerian-whisper-small",
     name: "Nigerian Whisper",
     note: "Trained on Nigerian voices. The one to beat.",
-    roughSize: "about 250 MB",
+    roughSize: "274 MB",
     local: true,
   },
   {
