@@ -40,8 +40,8 @@ on:
         description: "What to call it in Shomea, lower case, no spaces"
         required: true
         default: "nigerian-whisper-small"
-      quantise_encoder:
-        description: "Shrink the encoder too. Costs accuracy. Usually no."
+      keep_encoder_full:
+        description: "Leave the encoder at full precision. Four times bigger. Only for measuring."
         type: boolean
         default: false
 
@@ -142,7 +142,7 @@ jobs:
           python3 scripts/convert_model.py \
             --model "${{ inputs.model }}" \
             --output "build/${{ inputs.name }}" \
-            ${{ inputs.quantise_encoder && '--quantise-encoder' || '' }}
+            ${{ inputs.keep_encoder_full && '--keep-encoder-full' || '' }}
 
       - name: Install wrangler
         run: npm install -g wrangler@latest
@@ -198,6 +198,31 @@ jobs:
           path: build/${{ inputs.name }}
           retention-days: 7
           if-no-files-found: warn
+
+      # WRANGLER REFUSES ANYTHING OVER 300 MiB, and run 4 found that out by
+      # trying. More to the point, a file that big is one a church phone
+      # cannot fetch over mobile data, so the limit and the product agree.
+      #
+      # This says so before the upload starts, instead of halfway through.
+      - name: Nothing too big to upload
+        run: |
+          TOO_BIG=0
+          while IFS= read -r file; do
+            SIZE=$(stat -c%s "$file")
+            MB=$((SIZE / 1024 / 1024))
+            if [ "$MB" -gt 290 ]; then
+              echo "TOO BIG: $file is ${MB} MB. Wrangler stops at 300 MiB."
+              TOO_BIG=1
+            fi
+          done < <(find "build/${{ inputs.name }}" -type f)
+          if [ "$TOO_BIG" -eq 1 ]; then
+            echo ""
+            echo "Shrinking the encoder is what fixes this. See the header of"
+            echo "scripts/convert_model.py."
+            exit 1
+          fi
+          echo "Every file is small enough. Total:"
+          du -sh "build/${{ inputs.name }}"
 
       - name: Upload the model
         env:

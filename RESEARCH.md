@@ -434,7 +434,34 @@ proved on 2026-10-29, and it converted in 81 seconds.
 |---|---|---|
 | 1 | Install | `optimum[exporters]` no longer carries the exporter. Optimum 2.0 moved it to `optimum-onnx` |
 | 2 | The model | NCAIR1 is gated, 401 |
-| 3 | **Converted, and made the bucket** | R2 is not switched on for the account. Error 10042 |
+| 3 | Converted | R2 was not switched on for the account. Error 10042 |
+| 4 | **Converted, made the bucket, uploaded three files** | The encoder was 336 MiB. See below |
+
+### The encoder size, and why it changed the plan
+
+Run 4 proved R2 works. It then stopped on this:
+
+    Wrangler only supports uploading files up to 300 MiB
+    encoder_model.onnx is 336 MiB
+
+**The upload limit was the messenger, not the problem.** The real finding is
+that leaving the encoder at full precision makes a model a church phone
+cannot download. About half a gigabyte, over Nigerian mobile data, before it
+hears one word.
+
+The earlier note here said other people's conversions lost accuracy by
+shrinking the encoder, so this one did not shrink it. That reasoning was
+sound and the result was unusable. **A model nobody can download is not more
+accurate, it is not a model.**
+
+So both halves are shrunk now, and only the shrunk files are written out at
+all. The full precision copies were being stored and uploaded for nobody,
+because asking for dtype "q8" fetches the two ending in _quantized and
+nothing else.
+
+**If accuracy turns out to suffer, that is a measurement, not a guess.**
+`--keep-encoder-full` puts it back, and then the size has to be solved some
+other way: fp16 for the encoder, or Whisper Base instead of Small.
 
 Everything in the chain is now proved except R2 itself. The Cloudflare token
 works: it created the bucket. The conversion works: 81 seconds, no errors.

@@ -33,17 +33,28 @@ The exact folder shape transformers.js expects:
 
 Loading with dtype "q8" picks the two files ending in _quantized.
 
-THE ONE DECISION WORTH KNOWING ABOUT
-------------------------------------
-**Only the decoder is shrunk. The encoder is left at full precision.**
+THE DECISION THAT CHANGED, AND WHY
+----------------------------------
+This script used to leave the encoder at full precision, on the reasoning
+that other people's conversions lost accuracy by shrinking it.
 
-Other people converting fine-tuned Whisper models have found that shrinking
-the encoder costs real accuracy, while shrinking the decoder costs almost
-none and saves most of the size. The encoder is also the smaller half.
+**That produced a 336 MiB encoder.** Run 4 found it, because the upload tool
+refuses anything over 300 MiB. The tool limit was the messenger. The real
+problem is that a church phone would have had to download about half a
+gigabyte over Nigerian mobile data before it could hear a single word.
 
-So the default here keeps the encoder honest. If a future measurement shows
-the accuracy holds, --quantise-encoder turns it on, and the result gets
-compared rather than assumed.
+A model nobody can download is not more accurate. It is not a model.
+
+**So both halves are shrunk now.** If that turns out to cost real accuracy,
+--keep-encoder-full puts it back, and then the size has to be solved another
+way. Measure it before assuming either.
+
+WHAT IS AND IS NOT WRITTEN OUT
+------------------------------
+**Only the files the browser actually loads.** Asking for dtype "q8" fetches
+the two ending in _quantized and nothing else, so the full precision copies
+were being stored and uploaded for nobody. They are kept out of the output
+folder entirely.
 
 RUNNING IT
 ----------
@@ -77,9 +88,10 @@ def read_arguments():
         help="Where to write the finished folder",
     )
     parser.add_argument(
-        "--quantise-encoder",
+        "--keep-encoder-full",
         action="store_true",
-        help="Shrink the encoder too. Off by default, because it costs accuracy.",
+        help="Leave the encoder at full precision. Makes it about four times "
+             "bigger. Only for measuring what shrinking it costs.",
     )
     return parser.parse_args()
 
@@ -149,7 +161,7 @@ SIDECARS = [
 ]
 
 
-def arrange(exported, output, quantise_encoder):
+def arrange(exported, output, keep_encoder_full):
     output = Path(output)
     if output.exists():
         shutil.rmtree(output)
@@ -171,19 +183,16 @@ def arrange(exported, output, quantise_encoder):
             print(f"  {item.name}")
         raise SystemExit(1)
 
-    shutil.copy2(encoder, output / "onnx" / "encoder_model.onnx")
-    shutil.copy2(decoder, output / "onnx" / "decoder_model_merged.onnx")
-
+    # The full precision copies are deliberately NOT written out. Loading
+    # with dtype "q8" asks only for the two _quantized names, so shipping the
+    # others costs storage and upload time for files nothing ever fetches.
     quantise(decoder, output / "onnx" / "decoder_model_merged_quantized.onnx")
 
-    if quantise_encoder:
-        quantise(encoder, output / "onnx" / "encoder_model_quantized.onnx")
-    else:
-        # transformers.js asks for the _quantized name when dtype is q8, so
-        # the full precision encoder is given that name. It is not a trick:
-        # the file that gets loaded is the honest one, and that is the point.
+    if keep_encoder_full:
         shutil.copy2(encoder, output / "onnx" / "encoder_model_quantized.onnx")
-        print("  encoder left at full precision, on purpose")
+        print("  encoder left at FULL PRECISION. Expect it to be very large.")
+    else:
+        quantise(encoder, output / "onnx" / "encoder_model_quantized.onnx")
 
     return output
 
@@ -203,6 +212,18 @@ def report(output):
                 print(f"  {size / 1024 / 1024:7.1f} MB  {path.relative_to(output)}")
     print(f"  {total / 1024 / 1024:7.1f} MB  in total")
 
+    # A church phone downloads all of this once, over mobile data. Say so
+    # here rather than letting somebody discover it in a car park.
+    megabytes = total / 1024 / 1024
+    if megabytes > 300:
+        print("")
+        print(f"  WARNING: {megabytes:.0f} MB is too much for a phone to fetch")
+        print("  over mobile data. Something has to give before this ships.")
+    elif megabytes > 180:
+        print("")
+        print(f"  Note: {megabytes:.0f} MB is a large first download. Fine on")
+        print("  wifi, slow on mobile data.")
+
     # Written down so the number in models.js can be the real one rather
     # than a guess copied from a blog post.
     (output / "SIZE.json").write_text(
@@ -219,7 +240,7 @@ def main():
     workspace.mkdir(parents=True)
 
     export(options.model, workspace)
-    output = arrange(workspace, options.output, options.quantise_encoder)
+    output = arrange(workspace, options.output, options.keep_encoder_full)
     report(output)
     return 0
 
