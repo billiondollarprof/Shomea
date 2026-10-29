@@ -66,10 +66,36 @@ jobs:
         with:
           python-version: "3.12"
 
+      # THE PACKAGE NAME MATTERS AND IT CHANGED.
+      #
+      # The first run of this workflow failed here, instantly, with:
+      #
+      #   No module named optimum.exporters.onnx
+      #
+      # Optimum 2.0 moved ONNX export out of the main package into its own,
+      # called optimum-onnx. Installing "optimum[exporters]" now gets you
+      # Optimum with no exporter in it, which fails only once the long part
+      # is already over.
+      #
+      # The import path did not change, so the script below is untouched.
+      # Only the thing being installed is different.
       - name: Install the exporter
         run: |
           python -m pip install --upgrade pip
-          pip install "optimum[exporters]" onnx onnxruntime "transformers<5" torch --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install "optimum-onnx[onnxruntime]" onnx "transformers<5" torch --extra-index-url https://download.pytorch.org/whl/cpu
+
+      # Fail here, in one second, rather than after a model has downloaded.
+      # The first run spent three minutes getting to a missing import.
+      - name: Check the exporter is actually there
+        run: |
+          python -c "import optimum.exporters.onnx; print('Exporter found.')" || {
+            echo ""
+            echo "The ONNX exporter did not install."
+            echo "Optimum 2.0 moved it into a package called optimum-onnx."
+            echo "Installed packages that mention optimum:"
+            pip list 2>/dev/null | grep -i optimum || echo "  none"
+            exit 1
+          }
 
       - name: Convert
         run: |
