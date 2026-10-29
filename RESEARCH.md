@@ -605,6 +605,40 @@ Ten runs. What each one proved is the table above. **Not one of them failed
 twice for the same reason**, which is the only thing that makes ten
 acceptable.
 
+### THE VERDICT, measured on Anthony's phone, 2026-10-29
+
+After ten runs to get the Nigerian model working, it was measured against
+Moonshine on the same phone, the same voice, the same evening.
+
+| | Time per piece | What it heard |
+|---|---|---|
+| **Moonshine Base** | **1532 to 2156 ms** | **"Hebrews chapter one, verse two."** Exact. |
+| Nigerian Whisper | 46899 ms | "Diters sharp." / "8." / "Ah good girl." |
+
+**47 seconds to process 5 seconds of speech.** That is not a tuning
+problem, it is a disqualification. The graphics chip might be worth 8
+times, which would still leave it at 6 seconds, and it was producing
+nonsense anyway.
+
+Whisper Small is 244 million numbers running on one thread in a phone
+browser. It was always going to be slow. **Nobody measured it until it was
+built**, and that is the lesson worth more than the model: ten runs of
+engineering went into a thing that one timing would have ruled out.
+
+**Moonshine Base is the model.** It is 60 MB, it answers in two seconds,
+and on 2026-10-29 it produced the first completely correct verse reference
+this project has ever captured.
+
+Anthony reached the same conclusion from the same numbers before being
+told: *"moonshine base is still better off... we don't even need something
+that takes a lot of time."*
+
+**What this means for the plan.** The accuracy gap is now closed by code,
+not by a bigger model. Moonshine heard "Hebrews chapter one verse two"
+perfectly and "Titus" as "Diters". Sound-matching 66 book names fixes the
+second without costing a millisecond. `NOW.md` step 1, unchanged since
+September, and now the only thing in front of it is gone.
+
 ### A download in progress is not a failure
 
 Anthony also saw Moonshine report 34%, then 81%, then 70%, and never reach

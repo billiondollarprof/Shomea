@@ -30,6 +30,21 @@
 // RESEARCH.md section 1 explains why Moonshine is first. Section 8 explains
 // why a Nigerian-accent model is on the list at all.
 
+// MEASURED ON ANTHONY'S PHONE, 2026-10-29, AND THE ANSWER IS MOONSHINE.
+//
+//   Moonshine Base       1532ms to 2156ms per piece, and it heard
+//                        "Hebrews chapter one, verse two" exactly right
+//   Nigerian Whisper     46899ms per piece, and it heard "Diters sharp."
+//
+// 47 seconds for 5 seconds of speech is not a tuning problem, it is a
+// disqualification. A verse has to be on the screen in about two seconds.
+// Even the graphics chip, worth perhaps 8 times, would leave it at 6
+// seconds, and it was producing nonsense anyway.
+//
+// Nigerian Whisper stays on this list with an honest label rather than
+// being deleted, because the comparison is the evidence and Anthony should
+// be able to repeat it.
+//
 // THREE, NOT SIX. Anthony asked for the list to be cut, and he was right:
 // a chooser with six entries is a chooser nobody trusts.
 //
@@ -45,13 +60,13 @@ export const MODELS = [
   {
     id: "onnx-community/moonshine-base-ONNX",
     name: "Moonshine Base",
-    note: "Fast, and the better listener in a noisy room.",
+    note: "About 2 seconds. The one that works.",
     roughSize: "about 60 MB",
   },
   {
     id: "nigerian-whisper-small",
     name: "Nigerian Whisper",
-    note: "Trained on Nigerian voices. The one to beat.",
+    note: "Too slow to use. 47 seconds for 5 seconds of speech.",
     roughSize: "279 MB",
     local: true,
   },
