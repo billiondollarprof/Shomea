@@ -30,18 +30,23 @@
 // RESEARCH.md section 1 explains why Moonshine is first. Section 8 explains
 // why a Nigerian-accent model is on the list at all.
 
+// THREE, NOT SIX. Anthony asked for the list to be cut, and he was right:
+// a chooser with six entries is a chooser nobody trusts.
+//
+// What went and why:
+//   Moonshine Tiny   Base is better and the saving was 32 MB
+//   Whisper Small    the Nigerian one is the same size and trained for here
+//   Whisper Tiny     a fallback for a problem that never happened
+//
+// This chooser is temporary anyway. The finished app picks for itself.
+// NOW.md step 2.
+
 export const MODELS = [
   {
     id: "onnx-community/moonshine-base-ONNX",
     name: "Moonshine Base",
-    note: "Built for live listening. First choice.",
+    note: "Fast, and the better listener in a noisy room.",
     roughSize: "about 60 MB",
-  },
-  {
-    id: "onnx-community/moonshine-tiny-ONNX",
-    name: "Moonshine Tiny",
-    note: "Smallest and fastest. Try if Base is slow.",
-    roughSize: "about 28 MB",
   },
   {
     id: "nigerian-whisper-small",
@@ -53,20 +58,8 @@ export const MODELS = [
   {
     id: "Xenova/whisper-base.en",
     name: "Whisper Base",
-    note: "Slower, but usually better on a strong accent.",
+    note: "The neutral comparison. Not trained on any accent.",
     roughSize: "about 50 MB",
-  },
-  {
-    id: "Xenova/whisper-small.en",
-    name: "Whisper Small",
-    note: "Best accuracy here, and the heaviest. Needs patience.",
-    roughSize: "about 250 MB",
-  },
-  {
-    id: "Xenova/whisper-tiny.en",
-    name: "Whisper Tiny",
-    note: "The fallback if nothing else will load.",
-    roughSize: "about 20 MB",
   },
 ];
 

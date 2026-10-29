@@ -109,6 +109,18 @@ export default function Listen() {
 
   const onPiece = useCallback(
     ({ audio, rms, silent, seconds }) => {
+      // NOTHING IS SENT UNTIL THE MODEL IS READY.
+      //
+      // This used to send audio the moment the microphone opened, while the
+      // model was still downloading. Every piece came back "No model
+      // loaded", filling the log with failures that were not failures and
+      // making a download that was working look broken. Anthony read that
+      // and concluded the model never loaded.
+      //
+      // A download in progress is not an error, so it is not written down
+      // as one.
+      if (transcriber.status !== "ready") return;
+
       if (silent) {
         addLine({ at: Date.now(), silent: true, rms, model: modelIdRef.current });
         return;
@@ -258,8 +270,8 @@ export default function Listen() {
         <p className="status">
           {transcriber.status === "loading"
             ? transcriber.progress
-              ? `Getting ready. ${transcriber.progress.percent}%`
-              : "Getting ready."
+              ? `Getting ready. ${transcriber.progress.percent}% of ${transcriber.progress.totalMegabytes} MB. It is not listening yet.`
+              : "Getting ready. It is not listening yet."
             : transcriber.status === "failed"
               ? "It could not get ready. See the lines below."
               : !microphone.listening
@@ -271,13 +283,38 @@ export default function Listen() {
                     : "Listening, nothing said"}
         </p>
 
+        {transcriber.status === "loading" ? (
+          <div className="meter" aria-hidden="true">
+            <div className="meter-track">
+              <div
+                className="meter-fill"
+                style={{
+                  width: `${transcriber.progress ? transcriber.progress.percent : 2}%`,
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
+
         <button
           type="button"
           className={microphone.listening ? "button button-stop" : "button"}
           onClick={microphone.listening ? stopEverything : startEverything}
         >
-          {microphone.listening ? "Stop" : "Start listening"}
+          {!microphone.listening
+            ? "Start listening"
+            : transcriber.status === "loading"
+              ? "Stop, it is still getting ready"
+              : "Stop"}
         </button>
+
+        {transcriber.status === "loading" ? (
+          <p className="panel-foot">
+            The first time a model is used it downloads in full. Leave this on
+            wifi and let it finish. It is kept afterwards, so this happens
+            once.
+          </p>
+        ) : null}
 
         {microphone.error ? <p className="problem">{microphone.error}</p> : null}
 

@@ -199,31 +199,92 @@ def merge(first, with_past, target):
 # 5. Put it in the shape transformers.js expects
 # ---------------------------------------------------------------------------
 
-SIDECARS = [
+# Files that come out of the export.
+FROM_EXPORT = [
     "config.json",
     "generation_config.json",
     "preprocessor_config.json",
+]
+
+# THE TOKENIZER IS FETCHED FROM THE HUB, NOT TAKEN FROM THE EXPORT.
+#
+# Run 8 shipped a model with no tokenizer in it. The browser loaded it and
+# died on:
+#
+#     Cannot read properties of undefined (reading 'tokenizer_class')
+#
+# The export simply had not written those files, and the old code copied
+# "whatever it found", so finding nothing looked the same as success.
+#
+# The tokenizer is how the model's numbers turn back into words. Without it
+# the model is useless, so it is fetched straight from the model's own page
+# rather than hoped for, and its absence is fatal below.
+FROM_HUB = [
     "tokenizer.json",
     "tokenizer_config.json",
-    "special_tokens_map.json",
     "vocab.json",
     "merges.txt",
+    "special_tokens_map.json",
     "added_tokens.json",
     "normalizer.json",
 ]
 
+# Without this one, nothing works. Checked explicitly.
+MUST_HAVE = "tokenizer_config.json"
 
-def arrange(exported, output):
+
+def fetch_tokenizer(model_id, output):
+    """Take the tokenizer from the model's own page on the Hub."""
+    import os
+
+    from huggingface_hub import hf_hub_download
+    from huggingface_hub.utils import EntryNotFoundError
+
+    token = os.environ.get("HF_TOKEN") or None
+    got = []
+
+    for name in FROM_HUB:
+        try:
+            found = hf_hub_download(model_id, name, token=token)
+            shutil.copy2(found, output / name)
+            got.append(name)
+            print(f"  fetched {name}")
+        except EntryNotFoundError:
+            # Not every model has every file. merges.txt and vocab.json are
+            # absent when the tokenizer is the single-file kind.
+            pass
+        except Exception as problem:
+            print(f"  could not fetch {name}: {problem}")
+
+    if MUST_HAVE not in got:
+        print(f"\n{model_id} has no {MUST_HAVE}.")
+        print("")
+        print("That file is how the model's numbers turn back into words.")
+        print("Without it the browser loads the model and then dies on")
+        print("'Cannot read properties of undefined'. This is exactly what")
+        print("run 8 shipped, so it is a hard stop now.")
+        print("")
+        print(f"What was fetched: {got if got else 'nothing'}")
+        raise SystemExit(1)
+
+    return got
+
+
+def arrange(exported, output, model_id):
     output = Path(output)
     if output.exists():
         shutil.rmtree(output)
     (output / "onnx").mkdir(parents=True)
 
-    for name in SIDECARS:
+    for name in FROM_EXPORT:
         found = exported / name
         if found.exists():
             shutil.copy2(found, output / name)
             print(f"  kept {name}")
+
+    print("")
+    fetch_tokenizer(model_id, output)
+    print("")
 
     encoder = exported / "encoder_model.onnx"
     decoder = exported / "decoder_model.onnx"
@@ -309,7 +370,7 @@ def main():
     workspace.mkdir(parents=True)
 
     export(options.model, workspace)
-    output = arrange(workspace, options.output)
+    output = arrange(workspace, options.output, options.model)
     return report(output)
 
 

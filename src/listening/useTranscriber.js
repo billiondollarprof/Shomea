@@ -77,12 +77,11 @@ export function useTranscriber({ onResult, onFailure }) {
         setStatus("loading");
         setProgress(null);
       } else if (message.type === "progress") {
-        if (message.total) {
-          setProgress({
-            file: message.file,
-            percent: Math.round((message.loaded / message.total) * 100),
-          });
-        }
+        setProgress({
+          percent: message.percent,
+          loadedMegabytes: message.loadedMegabytes,
+          totalMegabytes: message.totalMegabytes,
+        });
       } else if (message.type === "ready") {
         setStatus("ready");
         setProgress(null);

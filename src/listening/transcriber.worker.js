@@ -76,6 +76,16 @@ env.backends.onnx.wasm.numThreads = 1;
 let transcriber = null;
 let loadedKey = null;
 
+// HOW FAR ALONG THE DOWNLOAD IS, as one number.
+//
+// The library reports progress per file, so the page used to show 34%, then
+// 81%, then 70%, jumping about as each file reported separately. Anthony
+// watched that and reasonably concluded it was never finishing.
+//
+// So every file's progress is remembered and the total is worked out across
+// all of them. One number, and it only goes up.
+let progressByFile = {};
+
 function say(message) {
   self.postMessage(message);
 }
@@ -99,6 +109,7 @@ async function load({ modelId, device, dtype }) {
 
   transcriber = null;
   loadedKey = null;
+  progressByFile = {};
 
   say({ type: "loading", modelId, device, dtype });
 
@@ -112,12 +123,31 @@ async function load({ modelId, device, dtype }) {
       device,
       dtype,
       progress_callback: (progress) => {
-        if (progress && progress.status === "progress") {
-          say({
-            type: "progress",
-            file: progress.file,
+        if (!progress || !progress.file) return;
+
+        if (progress.status === "progress" && progress.total) {
+          progressByFile[progress.file] = {
             loaded: progress.loaded,
             total: progress.total,
+          };
+        } else if (progress.status === "done") {
+          const known = progressByFile[progress.file];
+          if (known) known.loaded = known.total;
+        }
+
+        let loaded = 0;
+        let total = 0;
+        Object.values(progressByFile).forEach((one) => {
+          loaded += one.loaded;
+          total += one.total;
+        });
+
+        if (total > 0) {
+          say({
+            type: "progress",
+            percent: Math.min(99, Math.round((loaded / total) * 100)),
+            loadedMegabytes: Math.round(loaded / 1024 / 1024),
+            totalMegabytes: Math.round(total / 1024 / 1024),
           });
         }
       },

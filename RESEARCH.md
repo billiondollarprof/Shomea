@@ -541,6 +541,47 @@ not the other, by design.
 `merge_decoders(strict=False)` is the setting written for this. Checked
 against the installed source rather than guessed.
 
+### Run 8 shipped a model with no tokenizer. Found on a real phone.
+
+The conversion succeeded, uploaded 274 MB, and the browser died on:
+
+    Cannot read properties of undefined (reading 'tokenizer_class')
+
+The upload log is the proof. Six files reached storage:
+
+    preprocessor_config.json   config.json   SIZE.json
+    generation_config.json     encoder_model_quantized.onnx
+    decoder_model_merged_quantized.onnx
+
+**No tokenizer. None of it.** The tokenizer is how the model's numbers turn
+back into words, so without it the model is a pile of weights that can
+never say anything.
+
+The export simply never wrote those files, and the code copied "whatever it
+found", so finding nothing looked exactly like success. **That is the same
+shape of mistake as the shrink that did nothing: a step that cannot fail.**
+
+Fixed two ways. The tokenizer is now fetched straight from the model's own
+page on the Hub rather than hoped for in the export. And a missing
+`tokenizer_config.json` is a hard stop, because shipping without it wastes
+a 274 MB download and a trip to find out.
+
+### A download in progress is not a failure
+
+Anthony also saw Moonshine report 34%, then 81%, then 70%, and never reach
+100. Two separate faults, both ours.
+
+The library reports progress **per file**, and the page showed whichever
+file reported last. So the number jumped about and looked stuck. It now
+sums every file and shows one number that only goes up, with the total in
+megabytes beside it.
+
+Worse, the app opened the microphone and started sending audio immediately,
+while the model was still downloading. Every piece came back "No model
+loaded" and went into the log as a failure. **A working download looked
+broken.** Nothing is sent now until the model is ready, and the screen says
+"It is not listening yet" while it downloads.
+
 ### Why this model is worth the trouble
 
 `DivineAngel317/whisper-small-nigerian-accented-english` reports, on its own
