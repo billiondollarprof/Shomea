@@ -97,7 +97,47 @@ jobs:
             exit 1
           }
 
+      # IS THE MODEL EVEN REACHABLE? Ask before downloading gigabytes.
+      #
+      # Run 2 failed here, after the install, with a 401: the NCAIR1 model
+      # is gated, meaning its owner has to grant you access before Hugging
+      # Face will serve it. That is not something a retry fixes.
+      #
+      # This asks for one small file first, so a permission problem is
+      # reported in seconds, in plain words, instead of as a stack trace.
+      - name: Check the model can be reached
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'PY'
+          import os, sys
+          from huggingface_hub import hf_hub_download
+          from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError
+
+          model = "${{ inputs.model }}"
+          token = os.environ.get("HF_TOKEN") or None
+
+          try:
+              hf_hub_download(model, "config.json", token=token)
+              print(f"{model} can be reached.")
+          except GatedRepoError:
+              print(f"\n{model} is GATED. Somebody has to be given access to it.")
+              print("")
+              print("To use this one:")
+              print(f"  1. Open https://huggingface.co/{model} and request access")
+              print("  2. Make a read token at https://huggingface.co/settings/tokens")
+              print("  3. Add it to this repository as a secret called HF_TOKEN")
+              print("")
+              print("Or run this workflow again with a model that is not gated.")
+              sys.exit(1)
+          except RepositoryNotFoundError:
+              print(f"\n{model} does not exist, or the name is spelt wrong.")
+              sys.exit(1)
+          PY
+
       - name: Convert
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           python3 scripts/convert_model.py \
             --model "${{ inputs.model }}" \

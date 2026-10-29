@@ -415,6 +415,17 @@ bigger and the 1B model is far too large for a phone browser.
 non-commercial. NCAIR1 uses its own Open Source Research and Innovation
 Licence with extra conditions. Read each one.
 
+**`NCAIR1/NigerianAccentedEnglish` IS GATED.** Proved on 2026-10-29: the
+conversion workflow got a 401 and "Access to model is restricted". Its
+owner has to grant access before Hugging Face will serve a single file, so
+no token-free pipeline can use it.
+
+To use it, somebody with a Hugging Face account requests access on the
+model page, makes a read token, and that token goes into this repository as
+a secret called `HF_TOKEN`. The workflow already looks for it.
+
+Until then, the ungated ones are the route.
+
 ### THE PROBLEM, and it is the one worth solving
 
 **None of them are ONNX.** Every one is a PyTorch model, and the browser
