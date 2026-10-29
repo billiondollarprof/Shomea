@@ -147,13 +147,57 @@ jobs:
       - name: Install wrangler
         run: npm install -g wrangler@latest
 
-      # Making a bucket that already exists is not an error worth stopping
-      # for, so a second run is safe.
+      # THIS STEP USED TO END IN "|| true" AND THAT WAS A MISTAKE.
+      #
+      # The intent was that making a bucket which already exists should not
+      # stop a second run. What it actually did was swallow every failure,
+      # including the real one on run 3: R2 was not switched on for the
+      # account at all. The step reported success and the upload then failed
+      # with a 403 that took a log dive to understand.
+      #
+      # So now it reads the error and only forgives the one it meant to.
       - name: Make the bucket if it is not there
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: wrangler r2 bucket create shomea-models || true
+        run: |
+          OUT=$(wrangler r2 bucket create shomea-models 2>&1) || true
+          echo "$OUT"
+          if echo "$OUT" | grep -qi "already exists\|already owned"; then
+            echo "The bucket was already there. Carrying on."
+            exit 0
+          fi
+          if echo "$OUT" | grep -qi "enable R2"; then
+            echo ""
+            echo "R2 IS NOT SWITCHED ON FOR THIS CLOUDFLARE ACCOUNT."
+            echo ""
+            echo "The token is fine. R2 itself has never been turned on, and"
+            echo "it is a one time thing somebody has to do in the dashboard:"
+            echo ""
+            echo "  1. dash.cloudflare.com, then R2 in the left menu"
+            echo "  2. Follow the prompts to enable it"
+            echo "  3. Run this workflow again"
+            exit 1
+          fi
+          if echo "$OUT" | grep -qi "error\|✘"; then
+            echo "Making the bucket failed for a reason not handled above."
+            exit 1
+          fi
+          echo "Bucket made."
+
+      # THE CONVERSION IS THE EXPENSIVE PART, so keep it whatever happens
+      # next. Run 3 converted the model in 81 seconds and then threw it away
+      # because the upload could not run. Attaching it to the run means a
+      # storage problem never costs the conversion again, and the file sizes
+      # can be read without guessing.
+      - name: Keep the converted model with this run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.name }}
+          path: build/${{ inputs.name }}
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Upload the model
         env:

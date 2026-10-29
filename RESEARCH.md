@@ -425,6 +425,19 @@ model page, makes a read token, and that token goes into this repository as
 a secret called `HF_TOKEN`. The workflow already looks for it.
 
 Until then, the ungated ones are the route.
+**`DivineAngel317/whisper-small-nigerian-accented-english` is not gated**,
+proved on 2026-10-29, and it converted in 81 seconds.
+
+### What the conversion pipeline has actually proved, run by run
+
+| Run | Got as far as | Stopped by |
+|---|---|---|
+| 1 | Install | `optimum[exporters]` no longer carries the exporter. Optimum 2.0 moved it to `optimum-onnx` |
+| 2 | The model | NCAIR1 is gated, 401 |
+| 3 | **Converted, and made the bucket** | R2 is not switched on for the account. Error 10042 |
+
+Everything in the chain is now proved except R2 itself. The Cloudflare token
+works: it created the bucket. The conversion works: 81 seconds, no errors.
 
 ### THE PROBLEM, and it is the one worth solving
 
