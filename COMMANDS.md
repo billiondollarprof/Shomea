@@ -132,13 +132,97 @@ Anything that costs seconds has to earn them, and almost nothing can.
 
 ---
 
-## 5. Not decided yet
+## 5. "MEDIA" IS THE WORD. This is the most important thing in this file.
 
-- **Which versions he can actually show.** Amplified, NLT and The Living
-  Bible are all under copyright. `DIRECTION.md` section 3 holds the rule
-  for where licensed text may live.
-- **What happens at a chapter boundary.** "The next verse" at the last
-  verse of a chapter: roll into the next chapter, or stop?
-- **How long the screen remembers.** If he names a verse, preaches for ten
-  minutes, then says "the next verse", does that still mean the verse from
-  ten minutes ago?
+Anthony, 2026-10-29:
+
+> "he would say a string of four words from a particular chapter, but he
+> didn't remember the chapter. He can just mention media. Once he mentions
+> media, it means that he's saying that the media should show him the
+> scripture... Media is another word to call on the Bible app"
+
+**He is already calling the media team by name, out loud, in the middle of
+preaching.** That word is the trigger, and it has been there all along.
+
+> "let's read that verse again, media"
+
+**Why this matters more than anything else here.** The biggest danger in
+this whole project was the eager parser: forty minutes of speech, and the
+screen flickering with verses nobody asked for. `DIRECTION.md` says never
+show the wrong verse, and that was the hardest rule to keep.
+
+"Media" removes the guessing. When he wants something shown, he says so.
+
+**But it is not required for a plain reference.** "Turn to the book of
+Exodus chapter 6 verse 1" is unambiguous and should just work. So:
+
+| What he says | Act on it? |
+|---|---|
+| A full reference, named outright | Yes, on its own |
+| Anything vague: "the next verse", "NLT", a quoted phrase | **Only with "media"** |
+
+That split is the whole safety design, and it came from him, not from us.
+
+---
+
+## 6. Answered by Anthony, 2026-10-29
+
+### "The next verse" at the last verse of a chapter
+
+**Leave what is on the screen. Do not move.**
+
+> "obviously stops because there's no verse in that particular chapter...
+> I think the best thing is to just leave the verse that is already there.
+> They don't move it because there's no verse. But it's rare because he
+> would already know that this is the last verse in the chapter."
+
+Do not roll into the next chapter. Do not blank the screen. Do nothing.
+
+### How long the screen remembers
+
+**There is no time limit.** It holds until he names another verse or
+another chapter.
+
+> "as long as 10 minutes, yes. Because he hasn't said another verse, he
+> hasn't quoted another chapter... There's really no time limit because
+> sometimes it could take time illustrating on a particular verse that was
+> just read."
+
+**Mentioning another verse is what clears it. Nothing else does.**
+
+### Showing the same verse again
+
+The screen will have moved on to something else by then. He says:
+
+> "let's read that verse again, media"
+
+So "the verse that was up" has to survive the screen showing something
+else, and be recallable.
+
+### The versions
+
+**Downloaded and loaded in, not fetched from an API.**
+
+> "this app is not for sale, so we can actually use it, and we have been
+> using those Bible verses, so we can get them and use. We can download
+> them online. There are a lot of places where they have it for free. Even
+> if you check GitHub free repo... we don't even need API for this thing."
+
+His decision, made twice. `DIRECTION.md` section 3 still holds: licensed
+text goes in the swappable layer, so the day this ever becomes something
+he sells, that layer is emptied and nothing else changes.
+
+---
+
+## 7. Still open
+
+**Synonyms.** He was clear that every one of these has several forms:
+
+> "You can still mention something like another translation... let's go to
+> the previous verse. So all of these have synonyms. It's synonym way they
+> say it. So there's a lot of anecdotes, nuances that are involved. So but
+> it's with time."
+
+So this file is not finished and is not meant to be. **Every service is a
+chance to add a phrase that was actually said.** Add them here, in his
+words, as they come.

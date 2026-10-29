@@ -1,0 +1,72 @@
+# .github/workflows/remove-model.yml
+#
+# TAKES A MODEL BACK OUT OF STORAGE.
+#
+# Why this exists
+# ---------------
+# Nigerian Whisper was converted over ten runs, measured on a real phone at
+# 47 seconds per 5 seconds of speech, and rejected. It sat in R2 taking up
+# 279 MB of a 10 GB allowance that the Bible text is about to need.
+#
+# Anthony: "if we are retiring the Nigerian whisper, so we'll remove it so
+# that space is not occupied."
+#
+# Deleting by hand through a dashboard is the kind of job that gets done
+# wrong at the wrong moment, so it is a workflow with the name typed in.
+#
+# WHAT IT MUST NEVER DO
+# -------------------------------------------------------------------------
+# It deletes everything under the name it is given. There is no undo. The
+# name is typed by a person on purpose, and there is no default.
+
+name: Remove a speech model
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "The model folder to delete from storage. No undo."
+        required: true
+
+jobs:
+  remove:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install wrangler
+        run: npm install -g wrangler@latest
+
+      - name: Delete it
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          NAME="${{ inputs.name }}"
+          echo "Deleting everything under '$NAME'."
+          echo ""
+
+          # The files a converted model is made of. Listed rather than
+          # discovered, because a wildcard delete against storage is how
+          # somebody removes more than they meant to.
+          FILES="
+          added_tokens.json
+          config.json
+          generation_config.json
+          merges.txt
+          normalizer.json
+          preprocessor_config.json
+          special_tokens_map.json
+          tokenizer.json
+          tokenizer_config.json
+          vocab.json
+          SIZE.json
+          onnx/encoder_model_quantized.onnx
+          onnx/decoder_model_merged_quantized.onnx
+          "
+
+          for file in $FILES; do
+            echo "Removing $NAME/$file"
+            wrangler r2 object delete "shomea-models/$NAME/$file" --remote || true
+          done
+
+          echo ""
+          echo "Done. Anything left under that name was not in the list above."

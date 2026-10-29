@@ -31,11 +31,17 @@ words, with the date. It comes off only when it is built and checked.
   speech**, against Moonshine's 2 seconds, and it heard nonsense where
   Moonshine heard "Hebrews chapter one, verse two" exactly right.
   **Moonshine Base is the model.** `RESEARCH.md`, The verdict.
-- **2026-10-29. How the pastor actually speaks.** Anthony wrote down the
-  real phrases. **Recorded in `COMMANDS.md`**, his words kept exactly.
-  It changes the design: the screen needs a memory, because half of what
-  the preacher says moves relative to what is already showing. **Not built,
-  and waiting on him to confirm my reading of it.**
+- **2026-10-29. How the pastor actually speaks.** Recorded in
+  `COMMANDS.md`, his words kept exactly, and **every open question in it is
+  now answered by him.** The big one: **"media" is the trigger.** The
+  pastor already calls the media team by name out loud, and that word is
+  what makes a vague instruction safe to act on.
+  **Not built. This is the next thing.**
+- **2026-10-29. Remove the Nigerian model from storage.** "we'll remove it
+  so that space is not occupied." Gone from the chooser. The workflow to
+  clear it out of storage is written and needs running once.
+- **2026-10-29. Get the Bible versions by downloading them.** No API.
+  `DIRECTION.md` section 3. Not started.
 - **2026-10-29. Fewer models in the chooser.** "there's a lot of models
   there. You should retire some of them." **Done**, six down to three:
   Moonshine Base, Nigerian Whisper, Whisper Base.

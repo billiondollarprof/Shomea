@@ -83,6 +83,23 @@ With the boundary, it means emptying one store and refilling it.
 
 **Never bundle copyrighted scripture into the app itself. Never.**
 
+### What Anthony decided, twice, and it stands
+
+2026-10-29:
+
+> "this app is not for sale, so we can actually use it, and we have been
+> using those Bible verses, so we can get them and use. We can download
+> them online... we don't even need API for this thing."
+
+**So the versions his church uses get downloaded and loaded in.** No API
+key, no monthly refresh, no account. That is his call, he has made it
+twice, and it is recorded here rather than argued again.
+
+The boundary above still does the work. Those versions go in the swappable
+layer, not inside the app. **The day this becomes something he sells, that
+layer is emptied and nothing else changes.** That is the entire reason the
+boundary exists, and it is why his decision costs nothing later.
+
 ---
 
 ## 4. Plain words on every screen

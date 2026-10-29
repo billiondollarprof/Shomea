@@ -41,12 +41,14 @@
 // Even the graphics chip, worth perhaps 8 times, would leave it at 6
 // seconds, and it was producing nonsense anyway.
 //
-// Nigerian Whisper stays on this list with an honest label rather than
-// being deleted, because the comparison is the evidence and Anthony should
-// be able to repeat it.
+// Nigerian Whisper is gone from this list and gone from storage. Anthony:
+// "if we are retiring the Nigerian whisper, so we'll remove it so that
+// space is not occupied." The Bible text needs that room. The measurement
+// is kept in RESEARCH.md, which is where evidence belongs.
 //
-// THREE, NOT SIX. Anthony asked for the list to be cut, and he was right:
-// a chooser with six entries is a chooser nobody trusts.
+// TWO. Anthony asked for the list to be cut and it keeps getting shorter,
+// which is the right direction: this chooser exists only so he can compare,
+// and the finished app picks for itself.
 //
 // What went and why:
 //   Moonshine Tiny   Base is better and the saving was 32 MB
@@ -62,13 +64,6 @@ export const MODELS = [
     name: "Moonshine Base",
     note: "About 2 seconds. The one that works.",
     roughSize: "about 60 MB",
-  },
-  {
-    id: "nigerian-whisper-small",
-    name: "Nigerian Whisper",
-    note: "Too slow to use. 47 seconds for 5 seconds of speech.",
-    roughSize: "279 MB",
-    local: true,
   },
   {
     id: "Xenova/whisper-base.en",
