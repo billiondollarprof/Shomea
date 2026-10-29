@@ -519,6 +519,28 @@ appears 32 times, `decoder_with_past_model` appears zero times.
 The shrink step now also warns when a file barely shrinks, because the whole
 bug was a shrink that did nothing and said it worked.
 
+### Run 7 proved the shrink, and found the last snag
+
+The shrinking works now, exactly as predicted:
+
+    decoder_model.onnx        738 MB  becomes  186 MB
+    decoder_with_past_model   684 MB  becomes  172 MB
+
+A proper four-fold reduction. The branch diagnosis was right.
+
+The merge then refused:
+
+    The two model protos outputs are expected to have the same number of
+    outputs and output names when strict=True
+
+**The two decoders are supposed to differ.** The first one works out the
+encoder's key and value cache and hands it out. Every one after reuses that
+cache, so it has nothing to hand out. Twenty four outputs exist on one and
+not the other, by design.
+
+`merge_decoders(strict=False)` is the setting written for this. Checked
+against the installed source rather than guessed.
+
 ### Why this model is worth the trouble
 
 `DivineAngel317/whisper-small-nigerian-accented-english` reports, on its own

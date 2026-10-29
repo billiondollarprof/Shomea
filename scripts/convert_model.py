@@ -176,10 +176,21 @@ def merge(first, with_past, target):
     from optimum.onnx import merge_decoders
 
     print(f"Merging the two shrunk decoders into {target.name}")
+
+    # strict=False, and it is not a loosening of a safety check.
+    #
+    # The two decoders are SUPPOSED to have different outputs. The first one
+    # works out the encoder's key and value cache and hands it out. Every one
+    # after reuses that cache, so it has nothing to hand out. Twenty four
+    # outputs exist on one and not the other, by design.
+    #
+    # With the default strict=True the merge refuses on exactly that, which
+    # is what run 7 hit. strict=False is the setting written for this case.
     merge_decoders(
         decoder=str(first),
         decoder_with_past=str(with_past),
         save_path=str(target),
+        strict=False,
     )
     print(f"  {target.stat().st_size / 1024 / 1024:.0f} MB\n")
 
