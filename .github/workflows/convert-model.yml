@@ -40,8 +40,8 @@ on:
         description: "What to call it in Shomea, lower case, no spaces"
         required: true
         default: "nigerian-whisper-small"
-      keep_encoder_full:
-        description: "Leave the encoder at full precision. Four times bigger. Only for measuring."
+      keep_full_size:
+        description: "Also keep the unshrunk files, for comparing accuracy. Much bigger."
         type: boolean
         default: false
 
@@ -66,45 +66,49 @@ jobs:
         with:
           python-version: "3.12"
 
-      # THE PACKAGE NAME MATTERS AND IT CHANGED.
+      # THE CONVERTER IS TRANSFORMERS.JS'S OWN, not one assembled here.
       #
-      # The first run of this workflow failed here, instantly, with:
+      # Five runs went into a hand-rolled export before the result was seen
+      # to be wrong: the shrinker walked past most of the decoder's weights
+      # because they sit inside a branch, and reported success. See the
+      # header of scripts/convert_model.py.
       #
-      #   No module named optimum.exporters.onnx
-      #
-      # Optimum 2.0 moved ONNX export out of the main package into its own,
-      # called optimum-onnx. Installing "optimum[exporters]" now gets you
-      # Optimum with no exporter in it, which fails only once the long part
-      # is already over.
-      #
-      # The import path did not change, so the script below is untouched.
-      # Only the thing being installed is different.
-      - name: Install the exporter
+      # This is the tool the library's own authors maintain for this exact
+      # job, so the output is right by construction rather than by guessing
+      # at flags.
+      - name: Fetch the converter
+        run: |
+          git clone --depth 1 https://github.com/huggingface/transformers.js /tmp/tjs
+          echo "Converter at $(git -C /tmp/tjs rev-parse --short HEAD)"
+          ls /tmp/tjs/scripts/
+
+      - name: Install what the converter needs
         run: |
           python -m pip install --upgrade pip
-          pip install "optimum-onnx[onnxruntime]" onnx "transformers<5" torch --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          if [ -f /tmp/tjs/scripts/requirements.txt ]; then
+            pip install -r /tmp/tjs/scripts/requirements.txt
+          else
+            echo "No requirements.txt in the converter. Installing the usual set."
+            pip install "optimum-onnx[onnxruntime]" onnx "transformers<5" onnxslim
+          fi
 
-      # Fail here, in one second, rather than after a model has downloaded.
-      # The first run spent three minutes getting to a missing import.
-      - name: Check the exporter is actually there
+      - name: Check the converter will run
         run: |
-          python -c "import optimum.exporters.onnx; print('Exporter found.')" || {
+          cd /tmp/tjs
+          python -m scripts.convert --help > /dev/null || {
             echo ""
-            echo "The ONNX exporter did not install."
-            echo "Optimum 2.0 moved it into a package called optimum-onnx."
-            echo "Installed packages that mention optimum:"
-            pip list 2>/dev/null | grep -i optimum || echo "  none"
+            echo "The converter would not start. Installed packages:"
+            pip list 2>/dev/null | grep -iE "optimum|onnx|transformers|torch"
             exit 1
           }
+          echo "Converter starts."
 
       # IS THE MODEL EVEN REACHABLE? Ask before downloading gigabytes.
       #
-      # Run 2 failed here, after the install, with a 401: the NCAIR1 model
-      # is gated, meaning its owner has to grant you access before Hugging
-      # Face will serve it. That is not something a retry fixes.
-      #
-      # This asks for one small file first, so a permission problem is
-      # reported in seconds, in plain words, instead of as a stack trace.
+      # Run 2 failed after the install with a 401: the NCAIR1 model is
+      # gated, meaning its owner has to grant access first. That is not
+      # something a retry fixes, so it is asked in seconds, in plain words.
       - name: Check the model can be reached
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -142,7 +146,8 @@ jobs:
           python3 scripts/convert_model.py \
             --model "${{ inputs.model }}" \
             --output "build/${{ inputs.name }}" \
-            ${{ inputs.keep_encoder_full && '--keep-encoder-full' || '' }}
+            --converter /tmp/tjs \
+            ${{ inputs.keep_full_size && '--keep-full-size' || '' }}
 
       - name: Install wrangler
         run: npm install -g wrangler@latest
@@ -217,8 +222,8 @@ jobs:
           done < <(find "build/${{ inputs.name }}" -type f)
           if [ "$TOO_BIG" -eq 1 ]; then
             echo ""
-            echo "Shrinking the encoder is what fixes this. See the header of"
-            echo "scripts/convert_model.py."
+            echo "This is Cloudflare's upload limit, not a device limit."
+            echo "See the header of scripts/convert_model.py."
             exit 1
           fi
           echo "Every file is small enough. Total:"

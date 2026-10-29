@@ -463,7 +463,25 @@ nothing else.
 `--keep-encoder-full` puts it back, and then the size has to be solved some
 other way: fp16 for the encoder, or Whisper Base instead of Small.
 
-### Run 5, and the point where this stopped being worth another run
+### Device size is NOT the constraint. Anthony corrected this on 2026-10-29.
+
+An earlier note here treated a few hundred megabytes as too much for a
+church to download. **That was wrong and he said so plainly.**
+
+> "most of these churches is their laptop they used to load, it's not
+> mobile phone... for a mobile phone, 300 MB, believe you me, it's not even
+> big. Because mobile phones nowadays is 8 gigabytes of RAM... most of the
+> phones are now 128 gigabytes."
+
+He is right. A church runs this on a laptop into a projector, and a modern
+phone has the room and the processor for it. **The only hard limit left is
+Cloudflare's 300 MB per file on upload**, which is about the host and not
+about anybody's device.
+
+So accuracy is worth paying size for here. Do not shrink something below
+what it needs to be in order to save megabytes nobody was short of.
+
+### Run 5, and what was actually wrong
 
 Shrinking both halves did not save it. The size guard caught:
 
@@ -475,26 +493,21 @@ numbers it should be nearer 150 MB. Something in the shrinking is barely
 touching it, most likely the `MatMulConstBOnly` option, or the merged
 decoder carrying two copies of the same weights.
 
-That is probably fixable in one more change. **But it is the wrong thing to
-spend another run on, and here is why.**
+**The cause, found after run 5.** The decoder is exported as one graph
+holding two code paths, one for the first word and one for every word after,
+wrapped in a branch. `quantize_dynamic` does not descend into branches. So
+it walked past most of the weights, shrank almost nothing, and reported
+success.
 
-Whisper Small is 244 million numbers. Even shrunk perfectly it is about
-250 MB, against Moonshine Base at 60 MB, which already works and which
-Anthony judged the better listener in a room.
+**The fix was to stop hand-rolling it.** transformers.js ships its own
+converter, `scripts/convert.py` in the `huggingface/transformers.js`
+repository, maintained by the same people who make the library the browser
+loads the model with. It knows about this. The workflow clones it and drives
+it now, and `scripts/convert_model.py` only checks and tidies the result.
 
-**And the failures Anthony actually recorded are not about model size.**
-They were book names: "Like toast" for Titus, "Provide" for Proverbs. Every
-one of them is recoverable by matching sound against a list of 66 words,
-which is `NOW.md` step 1, needs no model, no download and no CI run, and can
-be tested against transcripts that already exist.
-
-Five runs have gone into the model swap. The thing his own test proved would
-help most has not been started. **Build that first, measure it, and come
-back to the model knowing whether it is even needed.**
-
-The pipeline itself is proved and waiting: run 5 produced a working
-converted model as a downloadable artifact, 771 MB, and the only step that
-has never run is the upload.
+Five runs went into a hand-rolled export that produced a wrong answer
+confidently. **The lesson is the general one: when a library ships a tool
+for converting models to its own format, use that tool.**
 
 Everything in the chain is now proved except R2 itself. The Cloudflare token
 works: it created the bucket. The conversion works: 81 seconds, no errors.

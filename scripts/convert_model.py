@@ -8,16 +8,38 @@ PyTorch. It runs ONNX, through the ONNX runtime, which is what
 transformers.js loads.
 
 So every one of them has to be exported and shrunk before it is any use
-here. That takes Python, several gigabytes of download, and real compute.
+here. That takes Python, several gigabytes of download and real compute.
 It cannot happen on Anthony's phone and it cannot happen inside an agent
 session, because huggingface.co is not reachable from there.
 
-It happens on a GitHub Actions runner instead, which can reach Hugging Face
-and has the disk to do it. See .github/workflows/convert-model.yml.
+It happens on a GitHub Actions runner instead. See
+.github/workflows/convert-model.yml.
+
+THE LESSON THAT PRODUCED THIS VERSION
+-------------------------------------
+The first version called the ONNX exporter and the shrinker by hand. It
+worked, and the result was wrong in a way that took five runs to see:
+
+    decoder_model_merged_quantized.onnx is 738 MB
+
+That file is supposed to be shrunk. It was not. The reason is that the
+decoder is exported as a single graph holding two code paths, one for the
+first word and one for every word after, wrapped in a branch. The shrinker
+does not descend into branches, so it walked past most of the weights and
+reported success.
+
+**transformers.js ships its own converter for exactly this, and it knows.**
+It is maintained by the same people who make the library the browser loads
+the model with, so the output is right by construction rather than by my
+guessing at flags.
+
+So this script does not do the conversion any more. It drives theirs, then
+checks and tidies the result. That is the whole change, and it is the
+difference between a tool built for the job and a hand-rolled one.
 
 WHAT IT PRODUCES
 ----------------
-The exact folder shape transformers.js expects:
+The folder shape transformers.js expects:
 
     <output>/
       config.json
@@ -26,41 +48,26 @@ The exact folder shape transformers.js expects:
       tokenizer.json
       tokenizer_config.json
       onnx/
-        encoder_model.onnx
-        decoder_model_merged.onnx
         encoder_model_quantized.onnx
         decoder_model_merged_quantized.onnx
 
-Loading with dtype "q8" picks the two files ending in _quantized.
-
-THE DECISION THAT CHANGED, AND WHY
-----------------------------------
-This script used to leave the encoder at full precision, on the reasoning
-that other people's conversions lost accuracy by shrinking it.
-
-**That produced a 336 MiB encoder.** Run 4 found it, because the upload tool
-refuses anything over 300 MiB. The tool limit was the messenger. The real
-problem is that a church phone would have had to download about half a
-gigabyte over Nigerian mobile data before it could hear a single word.
-
-A model nobody can download is not more accurate. It is not a model.
-
-**So both halves are shrunk now.** If that turns out to cost real accuracy,
---keep-encoder-full puts it back, and then the size has to be solved another
-way. Measure it before assuming either.
-
-WHAT IS AND IS NOT WRITTEN OUT
-------------------------------
-**Only the files the browser actually loads.** Asking for dtype "q8" fetches
-the two ending in _quantized and nothing else, so the full precision copies
-were being stored and uploaded for nobody. They are kept out of the output
-folder entirely.
+**Only the shrunk files.** Loading with dtype "q8" asks for the two names
+ending in _quantized and nothing else, so the full size copies would be
+stored and served for nobody.
 
 RUNNING IT
 ----------
     python3 scripts/convert_model.py \\
-        --model NCAIR1/NigerianAccentedEnglish \\
-        --output build/nigerian-whisper-small
+        --model DivineAngel317/whisper-small-nigerian-accented-english \\
+        --output build/nigerian-whisper-small \\
+        --converter /path/to/transformers.js
+
+Sections
+--------
+  1. What was asked for
+  2. Running their converter
+  3. Keeping only what the browser loads
+  4. Saying what came out, and whether it can be uploaded
 """
 
 import argparse
@@ -69,6 +76,12 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+# Cloudflare's upload tool refuses anything above this. It is the only hard
+# limit left: a church laptop and a modern phone both handle a few hundred
+# megabytes without noticing.
+UPLOAD_LIMIT_MB = 300
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +93,7 @@ def read_arguments():
     parser.add_argument(
         "--model",
         required=True,
-        help="The Hugging Face model id, for example NCAIR1/NigerianAccentedEnglish",
+        help="The Hugging Face model id",
     )
     parser.add_argument(
         "--output",
@@ -88,64 +101,55 @@ def read_arguments():
         help="Where to write the finished folder",
     )
     parser.add_argument(
-        "--keep-encoder-full",
+        "--converter",
+        required=True,
+        help="Path to a checkout of huggingface/transformers.js",
+    )
+    parser.add_argument(
+        "--keep-full-size",
         action="store_true",
-        help="Leave the encoder at full precision. Makes it about four times "
-             "bigger. Only for measuring what shrinking it costs.",
+        help="Also keep the unshrunk files. Only for comparing accuracy.",
     )
     return parser.parse_args()
 
 
 # ---------------------------------------------------------------------------
-# 2. Export to ONNX
+# 2. Running their converter
 # ---------------------------------------------------------------------------
 #
-# "with-past" means the decoder keeps what it has already worked out between
-# steps instead of starting again, which is the difference between usable
-# and unusably slow.
+# It writes into <converter>/models/<model id>/, which is why the output is
+# fished out rather than named.
 
-def export(model_id, into):
-    print(f"Exporting {model_id}. This downloads the model and takes a while.")
+def convert(model_id, converter):
+    print(f"Converting {model_id} with the transformers.js converter.")
+    print("This downloads the model and takes a while.\n")
+
     subprocess.run(
         [
-            sys.executable, "-m", "optimum.exporters.onnx",
-            "--model", model_id,
-            "--task", "automatic-speech-recognition-with-past",
-            "--opset", "14",
-            str(into),
+            sys.executable, "-m", "scripts.convert",
+            "--quantize",
+            "--model_id", model_id,
+            "--task", "automatic-speech-recognition",
         ],
+        cwd=str(converter),
         check=True,
     )
-    print("Export finished.")
+
+    produced = Path(converter) / "models" / model_id
+    if not produced.is_dir():
+        print(f"\nExpected the converter to write {produced}. It did not.")
+        print("What it did write:")
+        for item in sorted((Path(converter) / "models").rglob("*")):
+            if item.is_dir():
+                print(f"  {item}")
+        raise SystemExit(1)
+
+    return produced
 
 
 # ---------------------------------------------------------------------------
-# 3. Shrink it
+# 3. Keeping only what the browser loads
 # ---------------------------------------------------------------------------
-
-def quantise(source, target):
-    from onnxruntime.quantization import QuantType, quantize_dynamic
-
-    print(f"Shrinking {source.name}")
-    quantize_dynamic(
-        model_input=str(source),
-        model_output=str(target),
-        weight_type=QuantType.QUInt8,
-        # Whisper's attention blocks do not survive this one well, and
-        # leaving it off costs almost nothing in size.
-        extra_options={"MatMulConstBOnly": True},
-    )
-    before = source.stat().st_size / 1024 / 1024
-    after = target.stat().st_size / 1024 / 1024
-    print(f"  {before:.1f} MB becomes {after:.1f} MB")
-
-
-# ---------------------------------------------------------------------------
-# 4. Put it in the shape transformers.js expects
-# ---------------------------------------------------------------------------
-#
-# The exporter writes everything flat. transformers.js wants the model files
-# in an onnx/ folder and the rest beside it.
 
 SIDECARS = [
     "config.json",
@@ -160,89 +164,100 @@ SIDECARS = [
     "normalizer.json",
 ]
 
+WANTED_ONNX = [
+    "encoder_model_quantized.onnx",
+    "decoder_model_merged_quantized.onnx",
+]
 
-def arrange(exported, output, keep_encoder_full):
+
+def keep_what_is_needed(produced, output, keep_full_size):
     output = Path(output)
     if output.exists():
         shutil.rmtree(output)
     (output / "onnx").mkdir(parents=True)
 
     for name in SIDECARS:
-        found = exported / name
+        found = produced / name
         if found.exists():
             shutil.copy2(found, output / name)
             print(f"  kept {name}")
 
-    encoder = exported / "encoder_model.onnx"
-    decoder = exported / "decoder_model_merged.onnx"
+    missing = []
+    for name in WANTED_ONNX:
+        found = produced / "onnx" / name
+        if found.exists():
+            shutil.copy2(found, output / "onnx" / name)
+            print(f"  kept onnx/{name}")
+        else:
+            missing.append(name)
 
-    if not encoder.exists() or not decoder.exists():
-        print("\nThe exporter did not produce the two files expected.")
-        print("What it did produce:")
-        for item in sorted(exported.glob("*.onnx")):
-            print(f"  {item.name}")
+    if missing:
+        print("\nThe converter did not produce the files the browser needs:")
+        for name in missing:
+            print(f"  {name}")
+        print("\nWhat it did produce:")
+        for item in sorted((produced / "onnx").glob("*")):
+            print(f"  {item.name}  {item.stat().st_size / 1024 / 1024:.1f} MB")
         raise SystemExit(1)
 
-    # The full precision copies are deliberately NOT written out. Loading
-    # with dtype "q8" asks only for the two _quantized names, so shipping the
-    # others costs storage and upload time for files nothing ever fetches.
-    quantise(decoder, output / "onnx" / "decoder_model_merged_quantized.onnx")
-
-    if keep_encoder_full:
-        shutil.copy2(encoder, output / "onnx" / "encoder_model_quantized.onnx")
-        print("  encoder left at FULL PRECISION. Expect it to be very large.")
-    else:
-        quantise(encoder, output / "onnx" / "encoder_model_quantized.onnx")
+    if keep_full_size:
+        for item in sorted((produced / "onnx").glob("*.onnx")):
+            if item.name not in WANTED_ONNX:
+                shutil.copy2(item, output / "onnx" / item.name)
+                print(f"  kept onnx/{item.name} (full size, for comparing)")
 
     return output
 
 
 # ---------------------------------------------------------------------------
-# 5. Say what came out
+# 4. Saying what came out, and whether it can be uploaded
 # ---------------------------------------------------------------------------
 
 def report(output):
     total = 0
+    too_big = []
+
     print("\nFinished. What the browser will download:")
     for path in sorted(output.rglob("*")):
-        if path.is_file():
-            size = path.stat().st_size
-            total += size
-            if size > 1024 * 100:
-                print(f"  {size / 1024 / 1024:7.1f} MB  {path.relative_to(output)}")
+        if not path.is_file():
+            continue
+        size = path.stat().st_size
+        total += size
+        megabytes = size / 1024 / 1024
+        if megabytes > 100:
+            print(f"  {megabytes:7.1f} MB  {path.relative_to(output)}")
+        if megabytes > UPLOAD_LIMIT_MB:
+            too_big.append((path.relative_to(output), megabytes))
+
     print(f"  {total / 1024 / 1024:7.1f} MB  in total")
 
-    # A church phone downloads all of this once, over mobile data. Say so
-    # here rather than letting somebody discover it in a car park.
-    megabytes = total / 1024 / 1024
-    if megabytes > 300:
-        print("")
-        print(f"  WARNING: {megabytes:.0f} MB is too much for a phone to fetch")
-        print("  over mobile data. Something has to give before this ships.")
-    elif megabytes > 180:
-        print("")
-        print(f"  Note: {megabytes:.0f} MB is a large first download. Fine on")
-        print("  wifi, slow on mobile data.")
-
-    # Written down so the number in models.js can be the real one rather
-    # than a guess copied from a blog post.
+    # Written down so models.js can carry the real number rather than a
+    # guess copied from a blog post.
     (output / "SIZE.json").write_text(
-        json.dumps({"totalBytes": total, "totalMegabytes": round(total / 1024 / 1024, 1)}),
+        json.dumps({
+            "totalBytes": total,
+            "totalMegabytes": round(total / 1024 / 1024, 1),
+        }),
         encoding="utf-8",
     )
+
+    if too_big:
+        print("\nTOO BIG TO UPLOAD. Cloudflare refuses a single file over "
+              f"{UPLOAD_LIMIT_MB} MB:")
+        for name, megabytes in too_big:
+            print(f"  {megabytes:.0f} MB  {name}")
+        print("\nThis is an upload limit, not a device limit. A church laptop")
+        print("and a modern phone both handle this size without noticing.")
+        return 1
+
+    return 0
 
 
 def main():
     options = read_arguments()
-    workspace = Path("build/_export")
-    if workspace.exists():
-        shutil.rmtree(workspace)
-    workspace.mkdir(parents=True)
-
-    export(options.model, workspace)
-    output = arrange(workspace, options.output, options.keep_encoder_full)
-    report(output)
-    return 0
+    produced = convert(options.model, options.converter)
+    output = keep_what_is_needed(produced, options.output, options.keep_full_size)
+    return report(output)
 
 
 if __name__ == "__main__":
