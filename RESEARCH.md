@@ -463,6 +463,39 @@ nothing else.
 `--keep-encoder-full` puts it back, and then the size has to be solved some
 other way: fp16 for the encoder, or Whisper Base instead of Small.
 
+### Run 5, and the point where this stopped being worth another run
+
+Shrinking both halves did not save it. The size guard caught:
+
+    decoder_model_merged_quantized.onnx is 738 MB
+
+**A shrunk file should not be 738 MB.** Whisper Small's decoder is about 153
+million numbers, so roughly 600 MB at full precision. Shrunk to whole
+numbers it should be nearer 150 MB. Something in the shrinking is barely
+touching it, most likely the `MatMulConstBOnly` option, or the merged
+decoder carrying two copies of the same weights.
+
+That is probably fixable in one more change. **But it is the wrong thing to
+spend another run on, and here is why.**
+
+Whisper Small is 244 million numbers. Even shrunk perfectly it is about
+250 MB, against Moonshine Base at 60 MB, which already works and which
+Anthony judged the better listener in a room.
+
+**And the failures Anthony actually recorded are not about model size.**
+They were book names: "Like toast" for Titus, "Provide" for Proverbs. Every
+one of them is recoverable by matching sound against a list of 66 words,
+which is `NOW.md` step 1, needs no model, no download and no CI run, and can
+be tested against transcripts that already exist.
+
+Five runs have gone into the model swap. The thing his own test proved would
+help most has not been started. **Build that first, measure it, and come
+back to the model knowing whether it is even needed.**
+
+The pipeline itself is proved and waiting: run 5 produced a working
+converted model as a downloadable artifact, 771 MB, and the only step that
+has never run is the upload.
+
 Everything in the chain is now proved except R2 itself. The Cloudflare token
 works: it created the bucket. The conversion works: 81 seconds, no errors.
 
