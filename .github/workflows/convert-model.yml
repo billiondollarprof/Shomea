@@ -40,6 +40,10 @@ on:
         description: "What to call it in Shomea, lower case, no spaces"
         required: true
         default: "nigerian-whisper-small"
+      tokenizer_from:
+        description: "Where to get the word list if the model's own page has none. What it was fine tuned from."
+        required: true
+        default: "openai/whisper-small"
 
 jobs:
   convert:
@@ -144,7 +148,8 @@ jobs:
         run: |
           python3 scripts/convert_model.py \
             --model "${{ inputs.model }}" \
-            --output "build/${{ inputs.name }}"
+            --output "build/${{ inputs.name }}" \
+            --tokenizer-from "${{ inputs.tokenizer_from }}"
 
       - name: Install wrangler
         run: npm install -g wrangler@latest

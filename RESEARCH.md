@@ -566,6 +566,33 @@ page on the Hub rather than hoped for in the export. And a missing
 `tokenizer_config.json` is a hard stop, because shipping without it wastes
 a 274 MB download and a trip to find out.
 
+### Run 9: the same mistake again, one layer down
+
+The tokenizer fix worked as far as it went. `tokenizer_config.json` and
+`special_tokens_map.json` both reached storage. **The word list did not.**
+
+`DivineAngel317` has not uploaded one. No `tokenizer.json`, no `vocab.json`,
+no `merges.txt`. And the check looked for `tokenizer_config.json`, found it,
+and passed.
+
+**That is the third time the same shape of bug has appeared here:**
+
+| What it checked | What it missed |
+|---|---|
+| The shrink ran | It shrank nothing |
+| Files were copied | There were none to copy |
+| The settings file arrived | The word list did not |
+
+Every one was a check that could only pass. The rule that falls out of it:
+**check for the thing you actually need, not for evidence that a step ran.**
+
+The fix is also the general one for fine tunes. **A fine tune does not change
+the word list**, so when the author has not uploaded one, the model it was
+built from has the right one. That is not a guess: sharing a vocabulary is
+what makes something a fine tune rather than a new model. So the conversion
+falls back to `openai/whisper-small`, and the check now wants a real word
+list, in either of its two shapes, before it will pass.
+
 ### A download in progress is not a failure
 
 Anthony also saw Moonshine report 34%, then 81%, then 70%, and never reach

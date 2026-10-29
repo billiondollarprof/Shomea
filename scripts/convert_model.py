@@ -107,6 +107,12 @@ def read_arguments():
         required=True,
         help="Where to write the finished folder",
     )
+    parser.add_argument(
+        "--tokenizer-from",
+        default="openai/whisper-small",
+        help="Where to get the word list if the model's own page has none. "
+             "Must be what the model was fine tuned from.",
+    )
     return parser.parse_args()
 
 
@@ -229,48 +235,95 @@ FROM_HUB = [
     "normalizer.json",
 ]
 
-# Without this one, nothing works. Checked explicitly.
-MUST_HAVE = "tokenizer_config.json"
+# WHAT COUNTS AS A COMPLETE TOKENIZER.
+#
+# Run 9 fetched tokenizer_config.json and special_tokens_map.json, the check
+# saw tokenizer_config.json and passed, and the model shipped with no actual
+# vocabulary in it. **The same mistake twice: a check that passes on a half
+# answer.**
+#
+# A tokenizer needs its settings AND its word list. The word list comes in
+# one of two shapes, so either is accepted:
+#
+#   tokenizer.json                 the single file kind
+#   vocab.json plus merges.txt     the older two file kind
+#
+# Both of those are checked for now, not just the settings file.
+
+SETTINGS = "tokenizer_config.json"
 
 
-def fetch_tokenizer(model_id, output):
-    """Take the tokenizer from the model's own page on the Hub."""
-    import os
+def has_vocabulary(got):
+    return "tokenizer.json" in got or ("vocab.json" in got and "merges.txt" in got)
 
+
+def take_from(repo, output, token, wanted):
+    """Fetch what exists of `wanted` from one repository."""
     from huggingface_hub import hf_hub_download
     from huggingface_hub.utils import EntryNotFoundError
 
-    token = os.environ.get("HF_TOKEN") or None
     got = []
-
-    for name in FROM_HUB:
+    for name in wanted:
+        if (output / name).exists():
+            got.append(name)
+            continue
         try:
-            found = hf_hub_download(model_id, name, token=token)
+            found = hf_hub_download(repo, name, token=token)
             shutil.copy2(found, output / name)
             got.append(name)
-            print(f"  fetched {name}")
+            print(f"  fetched {name} from {repo}")
         except EntryNotFoundError:
-            # Not every model has every file. merges.txt and vocab.json are
-            # absent when the tokenizer is the single-file kind.
             pass
         except Exception as problem:
-            print(f"  could not fetch {name}: {problem}")
+            print(f"  could not fetch {name} from {repo}: {problem}")
+    return got
 
-    if MUST_HAVE not in got:
-        print(f"\n{model_id} has no {MUST_HAVE}.")
+
+def fetch_tokenizer(model_id, output, fallback):
+    """Take the tokenizer from the model's page, or from what it was built on.
+
+    A fine tune does not change the word list, so when the author has not
+    uploaded one, the model it was fine tuned from has the right one. That
+    is not a guess: the two share a vocabulary by definition, which is what
+    makes it a fine tune rather than a new model.
+    """
+    import os
+
+    token = os.environ.get("HF_TOKEN") or None
+
+    print(f"Tokenizer, from {model_id}:")
+    got = take_from(model_id, output, token, FROM_HUB)
+
+    if not has_vocabulary(got):
         print("")
-        print("That file is how the model's numbers turn back into words.")
-        print("Without it the browser loads the model and then dies on")
-        print("'Cannot read properties of undefined'. This is exactly what")
-        print("run 8 shipped, so it is a hard stop now.")
+        print(f"  No word list there. Falling back to {fallback}, which this")
+        print("  model was fine tuned from and therefore shares a word list")
+        print("  with.")
+        got = take_from(fallback, output, token, FROM_HUB)
+
+    missing = []
+    if SETTINGS not in got:
+        missing.append(SETTINGS)
+    if not has_vocabulary(got):
+        missing.append("a word list (tokenizer.json, or vocab.json and merges.txt)")
+
+    if missing:
+        print(f"\nThe tokenizer is incomplete. Missing:")
+        for item in missing:
+            print(f"  {item}")
+        print("")
+        print("The tokenizer is how the model's numbers turn back into words.")
+        print("Shipping without it costs a 279 MB download and a trip to find")
+        print("out, which is exactly what runs 8 and 9 did. Hard stop.")
         print("")
         print(f"What was fetched: {got if got else 'nothing'}")
         raise SystemExit(1)
 
+    print(f"\n  Tokenizer complete: {sorted(got)}")
     return got
 
 
-def arrange(exported, output, model_id):
+def arrange(exported, output, model_id, fallback):
     output = Path(output)
     if output.exists():
         shutil.rmtree(output)
@@ -283,7 +336,7 @@ def arrange(exported, output, model_id):
             print(f"  kept {name}")
 
     print("")
-    fetch_tokenizer(model_id, output)
+    fetch_tokenizer(model_id, output, fallback)
     print("")
 
     encoder = exported / "encoder_model.onnx"
@@ -370,7 +423,7 @@ def main():
     workspace.mkdir(parents=True)
 
     export(options.model, workspace)
-    output = arrange(workspace, options.output, options.model)
+    output = arrange(workspace, options.output, options.model, options.tokenizer_from)
     return report(output)
 
 
