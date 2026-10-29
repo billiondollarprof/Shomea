@@ -26,11 +26,11 @@ words, with the date. It comes off only when it is built and checked.
   is Python too. What is missing is a test that scores how well a
   transcript finds verse references, and that needs the book matcher
   first.
-- **2026-10-28. Use a model trained on Nigerian speech.** Converted and
-  uploaded, 274 MB. **Run 8 shipped it with no tokenizer**, so it loaded on
-  Anthony's phone and died. Fixed by fetching the tokenizer from the Hub
-  directly and making its absence a hard stop. **Needs one more conversion
-  run, then a real voice.**
+- **2026-10-28. Use a model trained on Nigerian speech. COMPLETE AND
+  LIVE.** Run 10, 2026-10-29. 279 MB, thirteen files in R2, word list
+  included and checked in the upload log by eye rather than by trusting the
+  check. **Still has not heard a real voice.** That is the only thing left,
+  and it is Anthony's to do.
 - **2026-10-29. Fewer models in the chooser.** "there's a lot of models
   there. You should retire some of them." **Done**, six down to three:
   Moonshine Base, Nigerian Whisper, Whisper Base.

@@ -593,6 +593,18 @@ what makes something a fine tune rather than a new model. So the conversion
 falls back to `openai/whisper-small`, and the check now wants a real word
 list, in either of its two shapes, before it will pass.
 
+### Run 10: complete, on the tenth attempt
+
+Thirteen files in storage, 279.1 MB, including `tokenizer.json`,
+`vocab.json` and `merges.txt`. The word list is there in both shapes it
+comes in. Verified by reading the upload log, not by trusting the check
+that had just passed, because trusting the check is what went wrong three
+times.
+
+Ten runs. What each one proved is the table above. **Not one of them failed
+twice for the same reason**, which is the only thing that makes ten
+acceptable.
+
 ### A download in progress is not a failure
 
 Anthony also saw Moonshine report 34%, then 81%, then 70%, and never reach

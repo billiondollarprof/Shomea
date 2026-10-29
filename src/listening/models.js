@@ -52,7 +52,7 @@ export const MODELS = [
     id: "nigerian-whisper-small",
     name: "Nigerian Whisper",
     note: "Trained on Nigerian voices. The one to beat.",
-    roughSize: "274 MB",
+    roughSize: "279 MB",
     local: true,
   },
   {
