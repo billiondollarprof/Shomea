@@ -15,27 +15,33 @@ session, because huggingface.co is not reachable from there.
 It happens on a GitHub Actions runner instead. See
 .github/workflows/convert-model.yml.
 
-THE LESSON THAT PRODUCED THIS VERSION
--------------------------------------
-The first version called the ONNX exporter and the shrinker by hand. It
-worked, and the result was wrong in a way that took five runs to see:
+THE BUG THAT TOOK SIX RUNS, AND THE FIX
+--------------------------------------
+Run 5 produced this:
 
     decoder_model_merged_quantized.onnx is 738 MB
 
-That file is supposed to be shrunk. It was not. The reason is that the
-decoder is exported as a single graph holding two code paths, one for the
-first word and one for every word after, wrapped in a branch. The shrinker
-does not descend into branches, so it walked past most of the weights and
-reported success.
+That file is supposed to be shrunk. It was not, and the reason is worth
+writing down because it is invisible otherwise.
 
-**transformers.js ships its own converter for exactly this, and it knows.**
-It is maintained by the same people who make the library the browser loads
-the model with, so the output is right by construction rather than by my
-guessing at flags.
+The decoder is normally exported as **one graph holding two code paths**:
+one for the first word, one for every word after, wrapped in a branch. The
+shrinker walks the graph top to bottom and **does not go inside branches**.
+So it stepped over almost every weight, found nothing to do, and reported
+success. A confidently wrong answer.
 
-So this script does not do the conversion any more. It drives theirs, then
-checks and tidies the result. That is the whole change, and it is the
-difference between a tool built for the job and a hand-rolled one.
+Run 6 then tried transformers.js's own converter instead. That turned out
+to have been deleted from their repository as unmaintained, and their README
+now points back here. So there is no tool to borrow.
+
+**The fix is to never hand the shrinker a branch.**
+
+  1. Export WITHOUT merging, which gives two plain decoder graphs.
+  2. Shrink each one. No branches, so nothing is stepped over.
+  3. Merge the two shrunk graphs afterwards.
+
+The merge is `optimum.onnx.merge_decoders`, which exists for this.
+transformers.js only loads the merged name, so step 3 is not optional.
 
 WHAT IT PRODUCES
 ----------------
@@ -59,15 +65,16 @@ RUNNING IT
 ----------
     python3 scripts/convert_model.py \\
         --model DivineAngel317/whisper-small-nigerian-accented-english \\
-        --output build/nigerian-whisper-small \\
-        --converter /path/to/transformers.js
+        --output build/nigerian-whisper-small
 
 Sections
 --------
   1. What was asked for
-  2. Running their converter
-  3. Keeping only what the browser loads
-  4. Saying what came out, and whether it can be uploaded
+  2. Export, without merging
+  3. Shrink each plain graph
+  4. Merge the two shrunk decoders
+  5. Put it in the shape transformers.js expects
+  6. Saying what came out, and whether it can be uploaded
 """
 
 import argparse
@@ -100,55 +107,85 @@ def read_arguments():
         required=True,
         help="Where to write the finished folder",
     )
-    parser.add_argument(
-        "--converter",
-        required=True,
-        help="Path to a checkout of huggingface/transformers.js",
-    )
-    parser.add_argument(
-        "--keep-full-size",
-        action="store_true",
-        help="Also keep the unshrunk files. Only for comparing accuracy.",
-    )
     return parser.parse_args()
 
 
 # ---------------------------------------------------------------------------
-# 2. Running their converter
+# 2. Export, without merging
 # ---------------------------------------------------------------------------
 #
-# It writes into <converter>/models/<model id>/, which is why the output is
-# fished out rather than named.
+# --no-post-process is the whole point. Without it the exporter merges the
+# two decoder graphs into one wrapped in a branch, and the shrinker then
+# cannot see inside it. See the header.
 
-def convert(model_id, converter):
-    print(f"Converting {model_id} with the transformers.js converter.")
-    print("This downloads the model and takes a while.\n")
-
+def export(model_id, into):
+    print(f"Exporting {model_id}. This downloads the model and takes a while.")
     subprocess.run(
         [
-            sys.executable, "-m", "scripts.convert",
-            "--quantize",
-            "--model_id", model_id,
-            "--task", "automatic-speech-recognition",
+            sys.executable, "-m", "optimum.exporters.onnx",
+            "--model", model_id,
+            "--task", "automatic-speech-recognition-with-past",
+            "--no-post-process",
+            "--opset", "14",
+            str(into),
         ],
-        cwd=str(converter),
         check=True,
     )
-
-    produced = Path(converter) / "models" / model_id
-    if not produced.is_dir():
-        print(f"\nExpected the converter to write {produced}. It did not.")
-        print("What it did write:")
-        for item in sorted((Path(converter) / "models").rglob("*")):
-            if item.is_dir():
-                print(f"  {item}")
-        raise SystemExit(1)
-
-    return produced
+    print("Export finished.\n")
 
 
 # ---------------------------------------------------------------------------
-# 3. Keeping only what the browser loads
+# 3. Shrink each plain graph
+# ---------------------------------------------------------------------------
+
+def shrink(source, target):
+    from onnxruntime.quantization import QuantType, quantize_dynamic
+
+    before = source.stat().st_size / 1024 / 1024
+    print(f"Shrinking {source.name} ({before:.0f} MB)")
+
+    quantize_dynamic(
+        model_input=str(source),
+        model_output=str(target),
+        weight_type=QuantType.QUInt8,
+    )
+
+    after = target.stat().st_size / 1024 / 1024
+    print(f"  becomes {after:.0f} MB")
+
+    # The whole bug was a shrink that did almost nothing and said it worked.
+    # Never let that pass silently again.
+    if after > before * 0.6:
+        print("")
+        print(f"  WARNING: {source.name} barely shrank. Expect about a quarter")
+        print("  of the original. Something is being stepped over, most likely")
+        print("  a branch in the graph. Read the header of this file.")
+
+    return after
+
+
+# ---------------------------------------------------------------------------
+# 4. Merge the two shrunk decoders
+# ---------------------------------------------------------------------------
+#
+# transformers.js only ever loads "decoder_model_merged", so this step is
+# required rather than an optimisation. Checked against the library bundle
+# on 2026-10-29: "decoder_with_past_model" appears in it zero times.
+
+def merge(first, with_past, target):
+    from optimum.onnx import merge_decoders
+
+    print(f"Merging the two shrunk decoders into {target.name}")
+    merge_decoders(
+        decoder=str(first),
+        decoder_with_past=str(with_past),
+        save_path=str(target),
+    )
+    print(f"  {target.stat().st_size / 1024 / 1024:.0f} MB\n")
+
+
+# ---------------------------------------------------------------------------
+# 5. Put it in the shape transformers.js expects
 # ---------------------------------------------------------------------------
 
 SIDECARS = [
@@ -164,75 +201,74 @@ SIDECARS = [
     "normalizer.json",
 ]
 
-WANTED_ONNX = [
-    "encoder_model_quantized.onnx",
-    "decoder_model_merged_quantized.onnx",
-]
 
-
-def keep_what_is_needed(produced, output, keep_full_size):
+def arrange(exported, output):
     output = Path(output)
     if output.exists():
         shutil.rmtree(output)
     (output / "onnx").mkdir(parents=True)
 
     for name in SIDECARS:
-        found = produced / name
+        found = exported / name
         if found.exists():
             shutil.copy2(found, output / name)
             print(f"  kept {name}")
 
-    missing = []
-    for name in WANTED_ONNX:
-        found = produced / "onnx" / name
-        if found.exists():
-            shutil.copy2(found, output / "onnx" / name)
-            print(f"  kept onnx/{name}")
-        else:
-            missing.append(name)
+    encoder = exported / "encoder_model.onnx"
+    decoder = exported / "decoder_model.onnx"
+    with_past = exported / "decoder_with_past_model.onnx"
 
+    missing = [p.name for p in (encoder, decoder, with_past) if not p.exists()]
     if missing:
-        print("\nThe converter did not produce the files the browser needs:")
+        print("\nThe exporter did not produce what was expected. Missing:")
         for name in missing:
             print(f"  {name}")
         print("\nWhat it did produce:")
-        for item in sorted((produced / "onnx").glob("*")):
-            print(f"  {item.name}  {item.stat().st_size / 1024 / 1024:.1f} MB")
+        for item in sorted(exported.glob("*.onnx")):
+            print(f"  {item.name}  {item.stat().st_size / 1024 / 1024:.0f} MB")
         raise SystemExit(1)
 
-    if keep_full_size:
-        for item in sorted((produced / "onnx").glob("*.onnx")):
-            if item.name not in WANTED_ONNX:
-                shutil.copy2(item, output / "onnx" / item.name)
-                print(f"  kept onnx/{item.name} (full size, for comparing)")
+    print("")
+    shrink(encoder, output / "onnx" / "encoder_model_quantized.onnx")
+
+    # The two decoder halves are shrunk into a scratch folder, then merged
+    # into the one name the browser asks for.
+    scratch = exported / "_shrunk"
+    scratch.mkdir(exist_ok=True)
+    shrink(decoder, scratch / "decoder.onnx")
+    shrink(with_past, scratch / "decoder_with_past.onnx")
+
+    merge(
+        scratch / "decoder.onnx",
+        scratch / "decoder_with_past.onnx",
+        output / "onnx" / "decoder_model_merged_quantized.onnx",
+    )
 
     return output
 
 
 # ---------------------------------------------------------------------------
-# 4. Saying what came out, and whether it can be uploaded
+# 6. Saying what came out, and whether it can be uploaded
 # ---------------------------------------------------------------------------
 
 def report(output):
     total = 0
     too_big = []
 
-    print("\nFinished. What the browser will download:")
+    print("What the browser will download:")
     for path in sorted(output.rglob("*")):
         if not path.is_file():
             continue
         size = path.stat().st_size
         total += size
         megabytes = size / 1024 / 1024
-        if megabytes > 100:
+        if megabytes > 10:
             print(f"  {megabytes:7.1f} MB  {path.relative_to(output)}")
         if megabytes > UPLOAD_LIMIT_MB:
             too_big.append((path.relative_to(output), megabytes))
 
     print(f"  {total / 1024 / 1024:7.1f} MB  in total")
 
-    # Written down so models.js can carry the real number rather than a
-    # guess copied from a blog post.
     (output / "SIZE.json").write_text(
         json.dumps({
             "totalBytes": total,
@@ -255,8 +291,14 @@ def report(output):
 
 def main():
     options = read_arguments()
-    produced = convert(options.model, options.converter)
-    output = keep_what_is_needed(produced, options.output, options.keep_full_size)
+
+    workspace = Path("build/_export")
+    if workspace.exists():
+        shutil.rmtree(workspace)
+    workspace.mkdir(parents=True)
+
+    export(options.model, workspace)
+    output = arrange(workspace, options.output)
     return report(output)
 
 

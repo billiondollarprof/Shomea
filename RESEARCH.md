@@ -499,15 +499,38 @@ wrapped in a branch. `quantize_dynamic` does not descend into branches. So
 it walked past most of the weights, shrank almost nothing, and reported
 success.
 
-**The fix was to stop hand-rolling it.** transformers.js ships its own
-converter, `scripts/convert.py` in the `huggingface/transformers.js`
-repository, maintained by the same people who make the library the browser
-loads the model with. It knows about this. The workflow clones it and drives
-it now, and `scripts/convert_model.py` only checks and tidies the result.
+**Run 6 tried to borrow transformers.js's own converter. It no longer
+exists.** `scripts/convert.py` was deleted from their repository as
+unmaintained, confirmed on 2026-10-29: every path under `scripts/` returns
+404, and their README now points back at Optimum. So there is no tool to
+borrow, and the conversion has to be done here properly.
 
-Five runs went into a hand-rolled export that produced a wrong answer
-confidently. **The lesson is the general one: when a library ships a tool
-for converting models to its own format, use that tool.**
+**The fix is to never hand the shrinker a branch:**
+
+1. Export with `--no-post-process`, which gives two plain decoder graphs
+   instead of one wrapped in a branch.
+2. Shrink each one. Nothing is stepped over.
+3. Merge the two shrunk graphs with `optimum.onnx.merge_decoders`.
+
+Step 3 is not optional. **transformers.js only loads the merged name**,
+checked against the installed library bundle: `decoder_model_merged`
+appears 32 times, `decoder_with_past_model` appears zero times.
+
+The shrink step now also warns when a file barely shrinks, because the whole
+bug was a shrink that did nothing and said it worked.
+
+### Why this model is worth the trouble
+
+`DivineAngel317/whisper-small-nigerian-accented-english` reports, on its own
+card, **20.7% word error rate against 37.7% for stock Whisper Small**, over
+1,185 test clips. **Nearly half the mistakes.** That is a self-reported
+number on the author's own test set, so treat it as a reason to try rather
+than a promise, but it is the strongest evidence yet that an accent-trained
+model is worth having here.
+
+**No Nigerian fine-tune has been converted to ONNX by anybody.** Checked
+2026-10-29: onnx-community has stock Whisper only. So converting it
+ourselves is the only route.
 
 Everything in the chain is now proved except R2 itself. The Cloudflare token
 works: it created the bucket. The conversion works: 81 seconds, no errors.

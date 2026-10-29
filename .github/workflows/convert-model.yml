@@ -40,10 +40,6 @@ on:
         description: "What to call it in Shomea, lower case, no spaces"
         required: true
         default: "nigerian-whisper-small"
-      keep_full_size:
-        description: "Also keep the unshrunk files, for comparing accuracy. Much bigger."
-        type: boolean
-        default: false
 
 jobs:
   convert:
@@ -66,43 +62,46 @@ jobs:
         with:
           python-version: "3.12"
 
-      # THE CONVERTER IS TRANSFORMERS.JS'S OWN, not one assembled here.
+      # THE EXPORT IS DONE HERE, NOT BORROWED.
       #
-      # Five runs went into a hand-rolled export before the result was seen
-      # to be wrong: the shrinker walked past most of the decoder's weights
-      # because they sit inside a branch, and reported success. See the
-      # header of scripts/convert_model.py.
+      # Run 6 tried to use transformers.js's own converter. It has been
+      # deleted from their repository as unmaintained, and their README now
+      # points back at Optimum, which is what this uses.
       #
-      # This is the tool the library's own authors maintain for this exact
-      # job, so the output is right by construction rather than by guessing
-      # at flags.
-      - name: Fetch the converter
-        run: |
-          git clone --depth 1 https://github.com/huggingface/transformers.js /tmp/tjs
-          echo "Converter at $(git -C /tmp/tjs rev-parse --short HEAD)"
-          ls /tmp/tjs/scripts/
-
-      - name: Install what the converter needs
+      # The shrinking bug that cost five runs is fixed in
+      # scripts/convert_model.py, not here: it exports without merging,
+      # shrinks each plain graph, then merges the shrunk pair. Read that
+      # file's header before changing any of this.
+      - name: Install the exporter
         run: |
           python -m pip install --upgrade pip
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          if [ -f /tmp/tjs/scripts/requirements.txt ]; then
-            pip install -r /tmp/tjs/scripts/requirements.txt
-          else
-            echo "No requirements.txt in the converter. Installing the usual set."
-            pip install "optimum-onnx[onnxruntime]" onnx "transformers<5" onnxslim
-          fi
+          pip install "optimum-onnx[onnxruntime]" onnx "transformers<5" torch --extra-index-url https://download.pytorch.org/whl/cpu
 
-      - name: Check the converter will run
+      - name: Check the exporter and the merger are both there
         run: |
-          cd /tmp/tjs
-          python -m scripts.convert --help > /dev/null || {
-            echo ""
-            echo "The converter would not start. Installed packages:"
-            pip list 2>/dev/null | grep -iE "optimum|onnx|transformers|torch"
-            exit 1
-          }
-          echo "Converter starts."
+          python - <<'PY'
+          import sys
+          missing = []
+          try:
+              import optimum.exporters.onnx  # noqa: F401
+          except Exception as problem:
+              missing.append(f"the exporter: {problem}")
+          try:
+              from optimum.onnx import merge_decoders  # noqa: F401
+          except Exception as problem:
+              missing.append(f"the merger: {problem}")
+          try:
+              from onnxruntime.quantization import quantize_dynamic  # noqa: F401
+          except Exception as problem:
+              missing.append(f"the shrinker: {problem}")
+
+          if missing:
+              print("Cannot run. Missing:")
+              for item in missing:
+                  print(f"  {item}")
+              sys.exit(1)
+          print("Exporter, shrinker and merger all present.")
+          PY
 
       # IS THE MODEL EVEN REACHABLE? Ask before downloading gigabytes.
       #
@@ -145,9 +144,7 @@ jobs:
         run: |
           python3 scripts/convert_model.py \
             --model "${{ inputs.model }}" \
-            --output "build/${{ inputs.name }}" \
-            --converter /tmp/tjs \
-            ${{ inputs.keep_full_size && '--keep-full-size' || '' }}
+            --output "build/${{ inputs.name }}"
 
       - name: Install wrangler
         run: npm install -g wrangler@latest
