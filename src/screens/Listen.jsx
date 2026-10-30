@@ -46,6 +46,7 @@ import {
 } from "../listening/models.js";
 import { useMicrophone } from "../listening/useMicrophone.js";
 import { useTranscriber } from "../listening/useTranscriber.js";
+import { understand, startingScreen, versionName } from "../scripture/memory.js";
 import {
   useBrowserEars,
   askAboutLanguages,
@@ -98,8 +99,18 @@ export default function Listen() {
     });
   }, []);
 
+  // What the church screen would be showing. Held in a ref as well as in
+  // state, because two phrases can arrive before React has redrawn, and the
+  // second one has to be read against the first.
+  const [screenNow, setScreenNow] = useState(startingScreen);
+  const screenRef = useRef(screenNow);
+
   const onResult = useCallback(
     ({ text, milliseconds, sent }) => {
+      const outcome = understand(text, screenRef.current);
+      screenRef.current = outcome.screen;
+      setScreenNow(outcome.screen);
+
       addLine({
         at: Date.now(),
         text,
@@ -107,6 +118,9 @@ export default function Listen() {
         rms: sent ? sent.rms : 0,
         silent: false,
         model: modelIdRef.current,
+        // Written into the log so a service can be read back afterwards
+        // and every wrong move can be traced to the sentence that caused it.
+        screen: outcome.changed ? outcome.did : null,
       });
     },
     [addLine],
@@ -264,6 +278,8 @@ export default function Listen() {
     if (browserEars.listening) browserEars.stop();
     clearLog();
     setLines([]);
+    screenRef.current = startingScreen();
+    setScreenNow(screenRef.current);
   };
 
   const heard = lines.filter((line) => !line.silent && !line.error);
@@ -323,7 +339,7 @@ export default function Listen() {
 
         <p className="panel-foot">
           {usingBrowser
-            ? "This one is Chrome's own hearing. Nothing downloads and it works on any phone or laptop running Chrome. Safari and iPhone do not have it."
+            ? "This one is Chrome's own hearing. Nothing downloads. It works in Chrome. Other browsers may not have it, and some only pretend to."
             : "It runs on the plain route, not the graphics chip. That is a file size limit on the host and not a choice, and it will be fixed once the accuracy question is answered."}
         </p>
       </section>
@@ -515,6 +531,22 @@ export default function Listen() {
         ) : null}
       </section>
 
+      {/* --- 4b. What the church screen would be showing ----------------- */}
+
+      <section className="panel">
+        <h2>On the screen now</h2>
+        <p className="screen-now">
+          {screenNow.book
+            ? `${screenNow.book} ${screenNow.chapter}:${screenNow.verse}`
+            : "Nothing yet"}
+        </p>
+        <p className="panel-intro">
+          {versionName(screenNow.version)}. This is what the church would see.
+          It moves when it hears a reference, "the next verse", or a version
+          like "NLT".
+        </p>
+      </section>
+
       {/* --- 5. What it heard ------------------------------------------- */}
 
       <section className="panel">
@@ -557,6 +589,9 @@ export default function Listen() {
                   </span>
                   {!line.error ? (
                     <span className="said-ms">{line.milliseconds}ms</span>
+                  ) : null}
+                  {line.screen ? (
+                    <span className="said-ms">Screen: {line.screen}</span>
                   ) : null}
                 </p>
               ))

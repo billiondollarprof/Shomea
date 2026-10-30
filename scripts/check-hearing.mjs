@@ -61,6 +61,8 @@ const SHOULD_IGNORE = [
   "Hallelujah! Glory to God!",
   // Real, from Chrome, 2026-10-30. Words only, so it must stay silent.
   "and the angels spoke saying",
+  // "psalm is" sounds like "Psalms", and "one" follows it. Preaching.
+  "verse nine of that psalm is one I love",
   // A time of day has a colon and is not a verse.
   "we start at 10:30 tomorrow",
   "(heard nothing)",

@@ -96,7 +96,7 @@ export function asText(lines, about) {
     if (line.error) {
       return `${clockTime(line.at)} | ${String(line.milliseconds || 0).padStart(5)}ms |  ${line.rms.toFixed(3)} | FAILED: ${line.error}`;
     }
-    return `${clockTime(line.at)} | ${String(line.milliseconds || 0).padStart(5)}ms |  ${line.rms.toFixed(3)} | ${line.text || "(heard nothing)"}`;
+    return `${clockTime(line.at)} | ${String(line.milliseconds || 0).padStart(5)}ms |  ${line.rms.toFixed(3)} | ${line.text || "(heard nothing)"}${line.screen ? `   [screen: ${line.screen}]` : ""}`;
   });
 
   const spoken = lines

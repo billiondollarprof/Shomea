@@ -167,7 +167,7 @@ export function asNumber(word) {
 }
 
 // "twenty one" is two words and one number.
-function numberAt(words, at) {
+export function numberAt(words, at) {
   const first = asNumber(words[at]);
   if (first === null) return null;
 
@@ -255,8 +255,21 @@ function scoreAgainst(candidate, book) {
   return best;
 }
 
+// A book name is never followed straight into its number by one of these.
+// "Verse nine of that psalm is one I love" has "psalm is" right before the
+// "one", and "psalm is" sounds like "Psalms", so it opened Psalms 1. A
+// sentence that runs "name, small word, number" is somebody talking, not a
+// reference. Found 2026-10-30 by scripts/check-memory.mjs.
+const NEVER_ENDS_A_NAME = new Set([
+  "is", "was", "are", "were", "be", "been", "am", "i", "you", "he", "she",
+  "it", "we", "they", "my", "your", "his", "her", "our", "their", "has",
+  "have", "had", "do", "does", "did", "will", "would", "can", "could",
+]);
+
 export function findBook(words, upTo) {
   const results = [];
+
+  if (NEVER_ENDS_A_NAME.has(words[upTo - 1])) return results;
 
   for (let length = MOST_WORDS_IN_A_NAME; length >= 1; length -= 1) {
     const from = upTo - length;
@@ -349,8 +362,8 @@ export function hearReference(text) {
 
     if (chapter.value < 1 || chapter.value > best.book.chapters) continue;
 
-    // A verse, if one follows. "chapter 3 verse 5", or just "3 5", or
-    // "3:5" which tidy() keeps as one word.
+    // A verse, if one follows. "chapter 3 verse 5", or just "3 5". Chrome's
+    // "3:5" has already become "3 5" by this point, in tidy().
     // "verse number three" is three words before the number arrives.
     let verse = null;
     let after = at + chapter.used;

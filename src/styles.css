@@ -978,3 +978,13 @@ h3,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The reference the church screen would be showing, on /dev. Large on
+   purpose: it is the one thing to read at a glance during a test. */
+.screen-now {
+  margin: 4px 0 8px;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--wine-text);
+}

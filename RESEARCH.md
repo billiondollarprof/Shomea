@@ -889,3 +889,21 @@ Section 9 of this file says: check for the thing you actually need, not
 for evidence that a step ran. Ten runs of conversion went into a model
 that one timing measurement killed. So this one gets measured on his
 pastor, in his church, before a single line is deleted anywhere else.
+
+### Which browsers have it. Added 2026-10-30, from a search, not a test.
+
+| Browser | What the sources say |
+|---|---|
+| Chrome (Android and desktop) | Works. Android depends on the phone's speech service. |
+| Edge | Sources disagree. Treat as unproved. |
+| Brave | The call exists and always fails with "network". Brave has said it will not pay Google for it. |
+| Firefox | None, or behind a flag. |
+| Safari | A partial version under the `webkit` name. Reported blocked once installed to the iPhone home screen. |
+
+**Correction.** Earlier in this file and in the chat it was said that Safari
+has none. It has a partial one. It makes no difference to the plan, because
+the plan never trusts a browser's name.
+
+**Still unproved:** whether an installed Chrome app (a PWA) keeps the
+microphone and this engine, on Android and on Windows. No source confirms
+it. The first time the app is installed, test it before trusting it.

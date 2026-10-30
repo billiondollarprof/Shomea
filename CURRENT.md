@@ -86,6 +86,16 @@ words, with the date. It comes off only when it is built and checked.
   offline, the system switches to moonshine when the network is not
   strong... we are already even optimizing moonshine before, so we can
   still optimize it and use it when the system is offline as a backup."
+  **Built 2026-10-30:** the screen's memory, `src/scripture/memory.js`,
+  with 33 service-style tests. It handles a named verse, "the next verse",
+  "the previous verse", "the next chapter", "before that verse 9", a version
+  said alone ("NLT", "the living Bible"), a version and verse together, and
+  "that verse again". It ignores preaching. It is shown on `/dev` as "On the
+  screen now". It is **not on the church display yet**, because the Bible
+  text is not loaded.
+  **Open, my reading, tune from real services:** a sentence counts as an
+  instruction when it has 5 or fewer meaningful words or says "see", "show"
+  or "media". "That verse again" goes to the verse before this one.
   **Not built yet:** the automatic switch between the two. This replaces
   the older "model should switch by itself" item, which was Moonshine to
   Whisper and is no longer needed.

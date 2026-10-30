@@ -23,7 +23,8 @@
 #   1. build    the app compiles, and nothing is over Cloudflare's file cap
 #   2. rules    the parts of CLAUDE.md a machine can check
 #   3. hearing  the verse matcher still finds the verse, and still ignores
-#               the things that are not one
+#               the things that are not one, and the screen's memory still
+#               follows "the next verse" and "NLT" correctly
 
 name: CI
 
@@ -101,6 +102,13 @@ jobs:
 
       - name: Does it still hear the verse
         run: node scripts/check-hearing.mjs
+
+      # The screen's memory: "the next verse", "NLT", "that verse again".
+      # Run as short services, because each sentence only means something
+      # against the one before it. Half of it is preaching that must change
+      # nothing.
+      - name: Does the screen do the right thing when he speaks
+        run: node scripts/check-memory.mjs
 
   # -------------------------------------------------------------------------
   # 2. The house rules

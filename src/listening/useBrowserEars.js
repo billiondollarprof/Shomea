@@ -33,8 +33,12 @@
 //
 // What it cannot do
 // ------------------
-// - **Chrome only.** Not Safari, so not an iPhone. The church runs a
-//   laptop into a projector, so that is survivable, but it is a real limit.
+// - **Chrome is the one that works.** Firefox has none. Brave has the call
+//   but every use fails with "network", because Brave does not pay Google
+//   for it. Safari has a partial one, and installed to the home screen on
+//   an iPhone it is reported to be blocked. So the browser's NAME is never
+//   trusted: the app tries it and falls back to Moonshine the moment it
+//   fails. Sources are in RESEARCH.md section 10.
 // - **No version pinning.** Google changes the engine when it likes, and
 //   accuracy can move without us touching anything.
 // - **No word hints.** We cannot tell it to expect "Ephesians".
