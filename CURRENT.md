@@ -52,6 +52,19 @@ words, with the date. It comes off only when it is built and checked.
   and Malachi in "an Anakai", **and still finds nothing in "That's number
   one" or "she is 2 cool".**
   **Not yet wired to the listening screen.** That is next.
+- **2026-10-30. What do Anthropic, OpenAI and Google use, and is it
+  free?** "Even Google, Gemini, they are all doing well with Nigerian
+  accent. What are they using? Are those things free to get access for
+  this, for transcribing a voice to text?"
+  **Answered, and it turned up something better than expected.** All of
+  theirs run on a server, cost money by the minute and need the internet,
+  so none of them can be used here. **But Chrome has Google's own speech
+  engine built in, free, and from Chrome 139 it can run on the device with
+  no internet.** That would replace Moonshine, the worker, the storage and
+  the whole conversion pipeline.
+  **Built as a third choice on `/dev` so it can be measured. Nothing was
+  removed.** Swapping the pipeline is his decision and it waits for him
+  and for a real measurement. `RESEARCH.md` section 10.
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
   with nobody choosing. `NOW.md` step 2.
 - **2026-09-16. Read the logs remotely**, so a problem at church can be

@@ -46,9 +46,14 @@
 // space is not occupied." The Bible text needs that room. The measurement
 // is kept in RESEARCH.md, which is where evidence belongs.
 //
-// TWO. Anthony asked for the list to be cut and it keeps getting shorter,
-// which is the right direction: this chooser exists only so he can compare,
-// and the finished app picks for itself.
+// TWO MODELS, and then a third entry that is not a model at all. Anthony
+// asked for the list to be cut and it keeps getting shorter, which is the
+// right direction: this chooser exists only so he can compare, and the
+// finished app picks for itself.
+//
+// The third entry is Chrome's own speech engine, added 2026-10-30 after he
+// asked what Anthropic and Google use. It downloads nothing, so it costs
+// nothing to leave in the comparison.
 //
 // What went and why:
 //   Moonshine Tiny   Base is better and the saving was 32 MB
@@ -57,6 +62,12 @@
 //
 // This chooser is temporary anyway. The finished app picks for itself.
 // NOW.md step 2.
+
+// THE BROWSER'S OWN EARS ARE NOT A MODEL, but they sit in the same chooser
+// because the question they answer is the same one: who hears this pastor
+// best. This id is ours, not Hugging Face's, and nothing is ever fetched for
+// it. src/listening/useBrowserEars.js explains what it is and what it costs.
+export const BROWSER_EARS = "browser-ears";
 
 export const MODELS = [
   {
@@ -71,6 +82,13 @@ export const MODELS = [
     note: "The neutral comparison. Not trained on any accent.",
     roughSize: "about 50 MB",
   },
+  {
+    id: BROWSER_EARS,
+    name: "The browser's own ears",
+    note: "Nothing to download. Needs Chrome.",
+    roughSize: "nothing",
+    browser: true,
+  },
 ];
 
 export const DEFAULT_MODEL = MODELS[0].id;
@@ -83,6 +101,12 @@ export function modelName(id) {
 // True when the model is served from our own deployment rather than from
 // Hugging Face. The worker needs to know, because the two are looked for in
 // completely different places.
+// True for the browser's own ears, which take a completely different path
+// through the listening screen: no worker, no download, no audio pieces.
+export function isBrowserEars(id) {
+  return id === BROWSER_EARS;
+}
+
 export function isLocal(id) {
   const found = MODELS.find((model) => model.id === id);
   return Boolean(found && found.local);

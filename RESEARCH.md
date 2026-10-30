@@ -802,3 +802,90 @@ alarming. Worth making them read as what they are.
   downloads a native binary and the proxy blocks it. `.npmrc` carries
   `ignore-scripts=true`, which is why the install works. It is not needed:
   nothing here runs in Node.
+
+---
+
+## 10. WHAT THE BIG COMPANIES USE, AND WHETHER WE CAN HAVE IT. 2026-10-30.
+
+Anthony asked the question that should have been asked on day one:
+
+> "Are you sure Hugging Face does not even have a very good model that is
+> very good? Because what does Claude, Anthropic, what did they use to
+> improve their model for Nigerian accent?... Even Google, Gemini, they
+> are all doing well with Nigerian accent. What are they using? Are those
+> things free to get access for this, for transcribing a voice to text?"
+
+### The short answer
+
+Anthropic does not do speech at all. The Claude app on his phone turns
+his voice into text before Claude ever sees it, using a service bought in
+from somebody else, and Anthropic has never said who.
+
+OpenAI uses Whisper's much bigger brothers and now `gpt-4o-transcribe`.
+Google uses its own Chirp family. Both are the same shape of thing:
+
+- **They run on a server, not on a device.** The audio leaves the
+  building.
+- **They cost money per minute.** Roughly 0.6 cents a minute at today's
+  prices, so a 40 minute sermon is about 24 cents, every week.
+- **They need the internet.** DIRECTION.md rule 1 says the app works when
+  the internet does not, so this fails on its own.
+
+So the reason they hear a Nigerian accent well is not a secret model we
+could borrow. It is that they are enormous and run on machines we do not
+have. None of it is free and none of it is offline.
+
+### The one that IS free, and the reason this section matters
+
+**Chrome has Google's speech engine built into it.** Not a service you
+sign up for. Not an API key. It is the Web Speech API, it has been in
+Chrome for years, and a web page can simply ask for it.
+
+Two ways it runs:
+
+| | Where the audio goes | Needs internet | Cost |
+|---|---|---|---|
+| `processLocally = false` | Google's servers | Yes | Free |
+| `processLocally = true` | Stays on the device | **No** | Free |
+
+That second row is new. Chrome 139 and later can download a language pack
+once and then recognise speech **on the device, offline, for nothing**.
+`SpeechRecognition.available()` says whether a language can be had, and
+`SpeechRecognition.install()` fetches it.
+
+If `en-NG` or `en-GB` turns out to be installable, that is Google's own
+engine, tuned on far more Nigerian speech than we will ever see, running
+offline, at no cost, with nothing for us to convert, shrink, host or
+download. It would replace Moonshine, the worker, the R2 storage and the
+whole conversion pipeline.
+
+### What it would cost us
+
+- **Chrome only.** Safari does not have it, so an iPhone or an iPad
+  cannot use it. Anthony's own devices are a phone and an iPad, and the
+  church runs a laptop into the projector, so the church is fine and his
+  own testing is harder.
+- **No version pinning.** Google changes the engine when it likes, and
+  accuracy can move without us touching a line.
+- **No word hints.** We cannot tell it to expect "Ephesians". The book
+  matcher in `src/scripture/` already covers that, and it covers it for
+  every engine, which is why it was worth building either way.
+- **Unproved on his pastor.** Everything above is what the documents say.
+  Nothing here is measured yet.
+
+### What was built, and what was not
+
+`src/listening/useBrowserEars.js` and a third entry in the `/dev` chooser,
+so the same screen that measured Moonshine can measure this. It downloads
+nothing, so it costs nothing to leave in the comparison.
+
+**Nothing was removed.** Moonshine is still the model the app uses.
+Swapping the whole pipeline is a design decision and it is Anthony's, so
+it waits for a measurement and for him.
+
+### The rule this follows
+
+Section 9 of this file says: check for the thing you actually need, not
+for evidence that a step ran. Ten runs of conversion went into a model
+that one timing measurement killed. So this one gets measured on his
+pastor, in his church, before a single line is deleted anywhere else.
