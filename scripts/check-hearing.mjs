@@ -30,6 +30,15 @@ const SHOULD_FIND = [
   // Anthony's own example, 2026-10-30.
   ["in an Anakai chapter 3, verse 5", "Malachi", 3, 5],
   ["turn to a fee shins chapter 2 verse 8", "Ephesians", 2, 8],
+  // Real, from Chrome's own ears on Anthony's phone, 2026-10-30. Chrome
+  // writes the colon a Bible prints, which Moonshine never does.
+  ["Malachi 3:3", "Malachi", 3, 3],
+  ["ecclesiastes 4:19", "Ecclesiastes", 4, 19],
+  ["Proverbs 22", "Proverbs", 22, null],
+  ["Titus 1:2", "Titus", 1, 2],
+  // The same colon with a numbered book and with words around it.
+  ["1 John 4:8", "1 John", 4, 8],
+  ["turn with me to Ephesians 2:8", "Ephesians", 2, 8],
   // The numbered books.
   ["first John chapter 4 verse 8", "1 John", 4, 8],
   ["second Timothy chapter 3 verse 16", "2 Timothy", 3, 16],
@@ -50,6 +59,10 @@ const SHOULD_IGNORE = [
   "Diters sharp.",
   "He bestowed so.",
   "Hallelujah! Glory to God!",
+  // Real, from Chrome, 2026-10-30. Words only, so it must stay silent.
+  "and the angels spoke saying",
+  // A time of day has a colon and is not a verse.
+  "we start at 10:30 tomorrow",
   "(heard nothing)",
   // The classic false positive the eager parsers all fall for.
   "she is 2 cool",

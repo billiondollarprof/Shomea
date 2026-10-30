@@ -46,10 +46,16 @@ import { BOOKS, ORDINALS } from "./books.js";
 // 1. Tidying what was heard
 // ---------------------------------------------------------------------------
 
+// Chrome writes a reference the way a Bible prints it, "Malachi 3:3", with
+// a colon between chapter and verse. Moonshine writes it as words. The colon
+// is turned into a space so both arrive as the same two numbers. Found
+// 2026-10-30 from Anthony's first Chrome log: 7 of 10 such lines were being
+// thrown away.
 export function tidy(text) {
   return String(text || "")
     .toLowerCase()
-    .replace(/[^a-z0-9\s:]/g, " ")
+    .replace(/(\d)\s*:\s*(\d)/g, "$1 $2")
+    .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }

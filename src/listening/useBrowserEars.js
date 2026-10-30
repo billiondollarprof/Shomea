@@ -204,6 +204,20 @@ export function useBrowserEars({ onHeard, onFailure }) {
       // "no-speech" happens constantly during a sermon's quiet moments and
       // is not a fault. Anything else is worth recording.
       if (what === "no-speech" || what === "aborted") return;
+
+      // THESE THREE CANNOT FIX THEMSELVES, so it stops instead of retrying.
+      // The first version restarted after every error. With no network it
+      // failed and restarted in a loop and wrote 816 lines in a few seconds
+      // (Anthony's log, 2026-10-30). Stopping once, with one clear line, is
+      // the honest behaviour. The caller decides what to do next.
+      if (
+        what === "network" ||
+        what === "not-allowed" ||
+        what === "service-not-allowed"
+      ) {
+        wantedRef.current = false;
+      }
+
       if (onFailureRef.current) {
         onFailureRef.current({
           message:

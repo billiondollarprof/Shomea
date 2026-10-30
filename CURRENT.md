@@ -77,6 +77,18 @@ words, with the date. It comes off only when it is built and checked.
 
 ### Decided
 
+- **2026-10-30. Chrome's own ears are the main listener. Moonshine is the
+  offline backup.** Measured on his phone: Chrome heard "Malachi 3:3",
+  "ecclesiastes 4:19", "Proverbs 22", "Titus 1:2" correctly, online. The
+  church has Starlink, so online is normal. "Chrome has nothing" for
+  offline on his phone (Android, Chrome 155), so the on-device pack is not
+  available there and offline means Moonshine. His words: "anytime it's
+  offline, the system switches to moonshine when the network is not
+  strong... we are already even optimizing moonshine before, so we can
+  still optimize it and use it when the system is offline as a backup."
+  **Not built yet:** the automatic switch between the two. This replaces
+  the older "model should switch by itself" item, which was Moonshine to
+  Whisper and is no longer needed.
 - **2026-10-28. No Supabase. Cloudflare is the whole stack.** Pages for
   the app, R2 for the model files, D1 for the logs, Pages Functions for
   the one endpoint that writes them.
