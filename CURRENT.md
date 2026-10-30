@@ -45,8 +45,13 @@ words, with the date. It comes off only when it is built and checked.
 - **2026-10-29. Fewer models in the chooser.** "there's a lot of models
   there. You should retire some of them." **Done**, six down to three:
   Moonshine Base, Nigerian Whisper, Whisper Base.
-- **2026-09-16. Match the book names by sound.** `NOW.md` step 1. Still
-  the single most valuable thing on this list.
+- **2026-09-16. Match the book names by sound. BUILT AND PASSING.**
+  `src/scripture/`. 25 tests, every one from a real transcript or from
+  Anthony's own notes, and it runs in CI on every push. It now finds
+  Titus in "Diters", Proverbs in "Provide", Ephesians in "a fee shins",
+  and Malachi in "an Anakai", **and still finds nothing in "That's number
+  one" or "she is 2 cool".**
+  **Not yet wired to the listening screen.** That is next.
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
   with nobody choosing. `NOW.md` step 2.
 - **2026-09-16. Read the logs remotely**, so a problem at church can be

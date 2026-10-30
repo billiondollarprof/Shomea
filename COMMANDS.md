@@ -153,19 +153,81 @@ show the wrong verse, and that was the hardest rule to keep.
 
 "Media" removes the guessing. When he wants something shown, he says so.
 
-**But it is not required for a plain reference.** "Turn to the book of
-Exodus chapter 6 verse 1" is unambiguous and should just work. So:
+### CORRECTION, 2026-10-30. There are THREE triggers, not one.
 
-| What he says | Act on it? |
-|---|---|
-| A full reference, named outright | Yes, on its own |
-| Anything vague: "the next verse", "NLT", a quoted phrase | **Only with "media"** |
+I read the above as "media is the trigger". Anthony corrected it, and the
+reason matters more than the correction:
 
-That split is the whole safety design, and it came from him, not from us.
+> "If you are using only media as a trigger, that means anytime the pastor
+> is preaching, the pastor would always deliberately say media, because
+> currently he says it without thinking"
+
+**That is the whole point.** He says it naturally now. Build the app around
+it and he has to start saying it on purpose, which changes how he preaches.
+**A tool that changes how somebody does their job has failed**, however
+clever the trigger is.
+
+So, three ways in, and any one of them is enough:
+
+| Trigger | Example | On its own? |
+|---|---|---|
+| **A reference, spoken** | "in Malachi chapter 3, verse 5" | Yes |
+| **A quotation** | about four consecutive words from a verse | Yes |
+| **"Media"** | "let's read that verse again, media" | Yes |
+
+And "media" is still what makes the vague ones safe: a bare "NLT", "the
+next verse", a half-remembered quote.
+
+> "sometimes he just quotes open to the book of something like that... Then
+> sometimes he's speaking, he will now just say something like in Malachi
+> chapter 3, verse 5."
 
 ---
 
-## 6. Answered by Anthony, 2026-10-29
+## 6. NO TWO BOOKS SOUND ALIKE. This is what makes it work.
+
+Anthony, 2026-10-30:
+
+> "luckily enough, no 2 books in the Bible sound alike. First John at least
+> has John first. Second John has second on it. Third John. So I don't
+> think any book, any 2 books sound alike."
+
+**He is right, and it is the single most useful fact in this file.**
+
+Matching a mis-heard word against 66 names is only dangerous when two names
+are close. They are not. So a book can be found by **what it sounds like**
+rather than by what the model typed, and there is no near-miss to confuse
+it with.
+
+The real failures so far, all recoverable this way:
+
+    "Diters"        Titus
+    "Like toast"    Titus
+    "Provide"       Proverbs
+    "an Anakai"     Malachi
+    "a fee shins"   Ephesians
+
+### The numbered books are the one exception, and he handled it
+
+> "first John, second John, third John. Those are editions, right? But if
+> it not say first, it just says John, it means we are talking about the
+> account of Jesus Christ, John"
+
+**A number in front is part of the name.** No number means the plain book.
+That holds for Samuel, Kings, Chronicles, Corinthians, Thessalonians,
+Timothy, Peter and John.
+
+### Sound alone is not enough, and he said how to firm it up
+
+> "using sound plus qualifying it to the verse"
+
+**A book name is believed when a number follows it.** That is what turns a
+loose sound match into a reference, and it is why "Best number line" was
+correctly ignored: numbers with no book in front of them are noise.
+
+---
+
+## 7. Answered by Anthony, 2026-10-29
 
 ### "The next verse" at the last verse of a chapter
 
@@ -214,7 +276,7 @@ he sells, that layer is emptied and nothing else changes.
 
 ---
 
-## 7. Still open
+## 8. Still open
 
 **Synonyms.** He was clear that every one of these has several forms:
 
