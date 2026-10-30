@@ -224,6 +224,7 @@ export function useBrowserEars({ onHeard, onFailure }) {
 
       if (onFailureRef.current) {
         onFailureRef.current({
+          kind: what,
           message:
             what === "not-allowed"
               ? "Permission was refused. Allow the microphone and try again."

@@ -93,6 +93,9 @@ export function asText(lines, about) {
     if (line.silent) {
       return `${clockTime(line.at)} |      - |  quiet | (nothing said)`;
     }
+    if (line.note) {
+      return `${clockTime(line.at)} |      - |      - | NOTE: ${line.note}`;
+    }
     if (line.error) {
       return `${clockTime(line.at)} | ${String(line.milliseconds || 0).padStart(5)}ms |  ${line.rms.toFixed(3)} | FAILED: ${line.error}`;
     }
@@ -100,7 +103,7 @@ export function asText(lines, about) {
   });
 
   const spoken = lines
-    .filter((line) => !line.silent && !line.error && line.text)
+    .filter((line) => !line.silent && !line.error && !line.note && line.text)
     .map((line) => line.text)
     .join(" ");
 

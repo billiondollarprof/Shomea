@@ -41,9 +41,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   MODELS,
   DEFAULT_MODEL,
+  AUTOMATIC,
+  MOONSHINE,
+  BROWSER_EARS,
   modelName,
   isBrowserEars,
 } from "../listening/models.js";
+import { chromeIsUsable, afterFailure } from "../listening/engine.js";
 import { useMicrophone } from "../listening/useMicrophone.js";
 import { useTranscriber } from "../listening/useTranscriber.js";
 import { understand, startingScreen, versionName } from "../scripture/memory.js";
@@ -72,10 +76,21 @@ export default function Listen() {
   const [lines, setLines] = useState(() => readLog());
   const [copied, setCopied] = useState(false);
 
-  const modelIdRef = useRef(modelId);
+  // In Automatic the choice is not an engine. The engine in use is whichever
+  // one the rule in engine.js picked last, and it is null until listening
+  // starts. Everything below that asks "which engine" reads engineId.
+  const isAuto = modelId === AUTOMATIC;
+  const [engine, setEngine] = useState(null);
+  const engineId = isAuto
+    ? engine === "chrome"
+      ? BROWSER_EARS
+      : MOONSHINE
+    : modelId;
+
+  const modelIdRef = useRef(engineId);
   useEffect(() => {
-    modelIdRef.current = modelId;
-  }, [modelId]);
+    modelIdRef.current = engineId;
+  }, [engineId]);
 
   // The graphics chip is not an option today, and the reason is a file size
   // rather than a preference. The ONNX runtime build that WebGPU needs is
@@ -175,12 +190,35 @@ export default function Listen() {
   // is written down exactly as onResult would do it. Nothing else is shared
   // between the two paths.
 
-  const usingBrowser = isBrowserEars(modelId);
-  const browserEars = useBrowserEars({ onHeard: onResult, onFailure });
+  const usingBrowser = isBrowserEars(engineId);
+
+  // Chrome's failures go through the rule in Automatic. The ref lets the hook
+  // be set up now and the handler be written further down, where it can see
+  // everything it needs.
+  const chromeFailedRef = useRef(null);
+  const browserEars = useBrowserEars({
+    onHeard: onResult,
+    onFailure: (problem) => chromeFailedRef.current(problem),
+  });
 
   // What Chrome says about each language, filled in when he asks. Three
   // answers are possible: it is already here, it can be fetched, or this
   // Chrome is too old to even be asked.
+  // A line in the log that is about the app and not about what was heard.
+  // It is kept out of the tallies and out of "everything it heard".
+  const note = useCallback(
+    (words) =>
+      addLine({
+        at: Date.now(),
+        note: words,
+        milliseconds: 0,
+        rms: 0,
+        silent: false,
+        model: modelIdRef.current,
+      }),
+    [addLine],
+  );
+
   const [languageAnswers, setLanguageAnswers] = useState(null);
   const [installing, setInstalling] = useState(null);
 
@@ -192,26 +230,158 @@ export default function Listen() {
     setInstalling(lang);
     const what = await installLanguage(lang);
     setInstalling(null);
-    addLine({
-      at: Date.now(),
-      text: `Asked for ${lang} on this device: ${what}`,
-      milliseconds: 0,
-      rms: 0,
-      silent: false,
-      model: modelIdRef.current,
-    });
+    note(`Asked for ${lang} on this device: ${what}`);
     await checkLanguages();
   };
 
   // One switch for "is it on", whichever path is live, so the button and
   // the status line below do not each have to work it out.
-  const listening = usingBrowser ? browserEars.listening : microphone.listening;
+  const listening = isAuto
+    ? browserEars.listening || microphone.listening
+    : usingBrowser
+      ? browserEars.listening
+      : microphone.listening;
+
+  // -------------------------------------------------------------------------
+  // 2c. Automatic: Chrome while it works, Moonshine when it does not
+  // -------------------------------------------------------------------------
+  //
+  // The rule is engine.js. This is only the hands. It starts one engine,
+  // stops the other, and writes a note each time so a service can be read
+  // back afterwards.
+  //
+  // Moonshine is loaded in the background the moment listening starts, even
+  // while Chrome is the one hearing. The first load needs the internet, and
+  // the internet is exactly what may be gone when it is wanted. After that
+  // the phone keeps it.
+
+  const hands = useRef(null);
+  hands.current = { browserEars, microphone, transcriber };
+  const engineRef = useRef(null);
+  const auto = useRef({ on: false, failures: 0, blockedUntil: 0 });
+
+  const goChrome = useCallback(
+    (why) => {
+      const h = hands.current;
+      h.microphone.stop();
+      modelIdRef.current = BROWSER_EARS;
+      engineRef.current = "chrome";
+      setEngine("chrome");
+      h.browserEars.start();
+      note(`Hearing with Chrome. ${why}`);
+    },
+    [note],
+  );
+
+  const goMoonshine = useCallback(
+    async (why) => {
+      const h = hands.current;
+      h.browserEars.stop();
+      modelIdRef.current = MOONSHINE;
+      engineRef.current = "moonshine";
+      setEngine("moonshine");
+      if (h.transcriber.status !== "ready" && h.transcriber.status !== "loading") {
+        h.transcriber.load({ modelId: MOONSHINE, device, dtype });
+      }
+      note(`Hearing with Moonshine. ${why}`);
+      await h.microphone.start();
+    },
+    [note],
+  );
+
+  const startAuto = () => {
+    const a = auto.current;
+    a.on = true;
+    a.failures = 0;
+    a.blockedUntil = 0;
+    const online = navigator.onLine;
+    if (
+      chromeIsUsable({ exists: browserEars.exists, online, blockedUntil: 0, now: Date.now() })
+    ) {
+      goChrome("Started with a signal.");
+      transcriber.load({ modelId: MOONSHINE, device, dtype });
+    } else {
+      goMoonshine(
+        browserEars.exists
+          ? "Started with no internet."
+          : "This browser has no speech of its own.",
+      );
+    }
+  };
+
+  const stopAuto = () => {
+    auto.current.on = false;
+    engineRef.current = null;
+    browserEars.stop();
+    microphone.stop();
+    setEngine(null);
+  };
+
+  chromeFailedRef.current = (problem) => {
+    const a = auto.current;
+    if (!a.on || engineRef.current !== "chrome") {
+      onFailure(problem);
+      return;
+    }
+    const verdict = afterFailure({
+      kind: problem.kind,
+      online: navigator.onLine,
+      failuresSoFar: a.failures,
+    });
+    if (verdict.action === "stop") {
+      stopAuto();
+      onFailure(problem);
+      return;
+    }
+    if (verdict.action === "switch") {
+      if (verdict.blockMs > 0) a.failures += 1;
+      a.blockedUntil = Date.now() + verdict.blockMs;
+      goMoonshine(verdict.why);
+      return;
+    }
+    onFailure(problem);
+  };
+
+  // The internet going and coming back, and the quiet check for whether
+  // Chrome can be tried again after a wait.
+  useEffect(() => {
+    const check = () => {
+      const a = auto.current;
+      if (!a.on) return;
+      const online = navigator.onLine;
+      if (engineRef.current === "chrome" && !online) {
+        goMoonshine("The internet went.");
+      } else if (
+        engineRef.current === "moonshine" &&
+        chromeIsUsable({
+          exists: hands.current.browserEars.exists,
+          online,
+          blockedUntil: a.blockedUntil,
+          now: Date.now(),
+        })
+      ) {
+        goChrome("Back on Chrome.");
+      }
+    };
+    window.addEventListener("online", check);
+    window.addEventListener("offline", check);
+    const timer = setInterval(check, 30000);
+    return () => {
+      window.removeEventListener("online", check);
+      window.removeEventListener("offline", check);
+      clearInterval(timer);
+    };
+  }, [goChrome, goMoonshine]);
 
   // -------------------------------------------------------------------------
   // 3. Loading, and how far along it is
   // -------------------------------------------------------------------------
 
   const startEverything = async () => {
+    if (isAuto) {
+      startAuto();
+      return;
+    }
     if (usingBrowser) {
       browserEars.start();
       return;
@@ -221,6 +391,10 @@ export default function Listen() {
   };
 
   const stopEverything = () => {
+    if (isAuto) {
+      stopAuto();
+      return;
+    }
     if (usingBrowser) {
       browserEars.stop();
       return;
@@ -232,6 +406,9 @@ export default function Listen() {
   // make the result meaningless. So it stops first, and it stops BOTH paths
   // because the one being left behind is the one still running.
   const changeModel = (id) => {
+    auto.current.on = false;
+    engineRef.current = null;
+    setEngine(null);
     if (microphone.listening) microphone.stop();
     if (browserEars.listening) browserEars.stop();
     setModelId(id);
@@ -242,7 +419,7 @@ export default function Listen() {
   // -------------------------------------------------------------------------
 
   const about = {
-    modelId,
+    modelId: isAuto ? "automatic (Chrome, then Moonshine)" : modelId,
     device: usingBrowser ? "the browser itself" : device,
     dtype: usingBrowser ? "none" : dtype,
     language: usingBrowser ? browserEars.lang : "not used",
@@ -274,6 +451,9 @@ export default function Listen() {
   };
 
   const startAgain = () => {
+    auto.current.on = false;
+    engineRef.current = null;
+    setEngine(null);
     if (microphone.listening) microphone.stop();
     if (browserEars.listening) browserEars.stop();
     clearLog();
@@ -282,7 +462,7 @@ export default function Listen() {
     setScreenNow(screenRef.current);
   };
 
-  const heard = lines.filter((line) => !line.silent && !line.error);
+  const heard = lines.filter((line) => !line.silent && !line.error && !line.note);
   const failed = lines.filter((line) => line.error);
   const averageMs =
     heard.length > 0
@@ -317,9 +497,11 @@ export default function Listen() {
       <section className="panel">
         <h2>Which one listens</h2>
         <p className="panel-intro">
-          {usingBrowser
-            ? "This one is built into Chrome already. There is nothing to download."
-            : "The first time you pick one it downloads. After that it is kept on the phone and works with no internet."}
+          {isAuto
+            ? "Nothing to pick. It listens with Chrome while there is a signal and moves to Moonshine by itself when there is not."
+            : usingBrowser
+              ? "This one is built into Chrome already. There is nothing to download."
+              : "The first time you pick one it downloads. After that it is kept on the phone and works with no internet."}
         </p>
 
         <div className="choices">
@@ -338,7 +520,9 @@ export default function Listen() {
         </div>
 
         <p className="panel-foot">
-          {usingBrowser
+          {isAuto
+            ? "Moonshine downloads in the background the first time you start, so it is already on the phone when the signal goes."
+            : usingBrowser
             ? "This one is Chrome's own hearing. Nothing downloads. It works in Chrome. Other browsers may not have it, and some only pretend to."
             : "It runs on the plain route, not the graphics chip. That is a file size limit on the host and not a choice, and it will be fixed once the accuracy question is answered."}
         </p>
@@ -346,7 +530,7 @@ export default function Listen() {
 
       {/* --- 1b. Chrome's own hearing, and whether it can work offline -- */}
 
-      {usingBrowser ? (
+      {isBrowserEars(modelId) ? (
         <section className="panel">
           <h2>Chrome's own hearing</h2>
 
@@ -482,6 +666,12 @@ export default function Listen() {
                     : "Listening, nothing said"}
         </p>
 
+        {isAuto && engine ? (
+          <p className="panel-intro">
+            Hearing with: {engine === "chrome" ? "Chrome" : "Moonshine"}
+          </p>
+        ) : null}
+
         {!usingBrowser && transcriber.status === "loading" ? (
           <div className="meter" aria-hidden="true">
             <div className="meter-track">
@@ -585,9 +775,11 @@ export default function Listen() {
                   <span className="said-what">
                     {line.error
                       ? `Failed: ${line.error}`
-                      : line.text || "(heard nothing)"}
+                      : line.note
+                        ? line.note
+                        : line.text || "(heard nothing)"}
                   </span>
-                  {!line.error ? (
+                  {!line.error && !line.note ? (
                     <span className="said-ms">{line.milliseconds}ms</span>
                   ) : null}
                   {line.screen ? (

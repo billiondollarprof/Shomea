@@ -96,7 +96,17 @@ words, with the date. It comes off only when it is built and checked.
   **Open, my reading, tune from real services:** a sentence counts as an
   instruction when it has 5 or fewer meaningful words or says "see", "show"
   or "media". "That verse again" goes to the verse before this one.
-  **Not built yet:** the automatic switch between the two. This replaces
+  **Built 2026-10-30:** the automatic switch. `src/listening/engine.js`
+  holds the rule, 14 tests. **Automatic** is the first choice on `/dev` and
+  the default. It listens with Chrome, and moves to Moonshine when the
+  internet goes, when Chrome fails with the internet on (Brave), or when the
+  browser has no speech at all (Firefox). It goes back to Chrome when it can.
+  A refused microphone stops it and does not switch. Moonshine loads in the
+  background while Chrome is hearing. Every switch is a NOTE line in the
+  log. Walked through with a pretend browser in all five cases.
+  **Not proved on real hardware:** the switch on his phone, and whether an
+  installed app (PWA) keeps the microphone and Chrome's engine. There is no
+  manifest or service worker yet, so there is no PWA to test. This replaces
   the older "model should switch by itself" item, which was Moonshine to
   Whisper and is no longer needed.
 - **2026-10-28. No Supabase. Cloudflare is the whole stack.** Pages for

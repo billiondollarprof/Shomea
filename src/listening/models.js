@@ -69,9 +69,22 @@
 // it. src/listening/useBrowserEars.js explains what it is and what it costs.
 export const BROWSER_EARS = "browser-ears";
 
+// "Automatic" is not an engine either. It is the rule in engine.js: Chrome's
+// own ears while they work, Moonshine when they do not. It is first in the
+// list and it is what the finished app does with no chooser at all.
+export const AUTOMATIC = "automatic";
+export const MOONSHINE = "onnx-community/moonshine-base-ONNX";
+
 export const MODELS = [
   {
-    id: "onnx-community/moonshine-base-ONNX",
+    id: AUTOMATIC,
+    name: "Automatic",
+    note: "Chrome while there is a signal, Moonshine when there is not.",
+    roughSize: "the one to use",
+    auto: true,
+  },
+  {
+    id: MOONSHINE,
     name: "Moonshine Base",
     note: "About 2 seconds. The one that works.",
     roughSize: "about 60 MB",
@@ -91,7 +104,7 @@ export const MODELS = [
   },
 ];
 
-export const DEFAULT_MODEL = MODELS[0].id;
+export const DEFAULT_MODEL = AUTOMATIC;
 
 export function modelName(id) {
   const found = MODELS.find((model) => model.id === id);

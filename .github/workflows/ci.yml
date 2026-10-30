@@ -110,6 +110,12 @@ jobs:
       - name: Does the screen do the right thing when he speaks
         run: node scripts/check-memory.mjs
 
+      # Who is listening: Chrome's own ears, or Moonshine. Covers no signal,
+      # a browser that has the call and fails (Brave), and a refused
+      # microphone, which must never be answered by switching.
+      - name: Does it pick the right ears
+        run: node scripts/check-engine.mjs
+
   # -------------------------------------------------------------------------
   # 2. The house rules
   # -------------------------------------------------------------------------
