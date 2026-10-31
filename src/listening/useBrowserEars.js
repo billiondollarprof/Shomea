@@ -133,7 +133,6 @@ export function useBrowserEars({ onHeard, onFailure }) {
 
   const recognitionRef = useRef(null);
   const wantedRef = useRef(false);
-  const startedAtRef = useRef(0);
   const onHeardRef = useRef(onHeard);
   const onFailureRef = useRef(onFailure);
 
@@ -179,7 +178,6 @@ export function useBrowserEars({ onHeard, onFailure }) {
     }
 
     recognition.onstart = () => {
-      startedAtRef.current = performance.now();
       setListening(true);
     };
 
@@ -190,13 +188,15 @@ export function useBrowserEars({ onHeard, onFailure }) {
         const text = result[0].transcript.trim();
         if (!text) continue;
 
-        const took = Math.round(performance.now() - startedAtRef.current);
-        startedAtRef.current = performance.now();
-
+        // Chrome does not say when the person began speaking, so how long it
+        // TOOK cannot be known. The first version measured the gap since the
+        // last result, which is the pause between sentences. Anthony's iPad
+        // log showed 32021ms for a phrase that came back at once. So it says
+        // nothing, and the log shows "n/a".
         if (onHeardRef.current) {
           onHeardRef.current({
             text,
-            milliseconds: took,
+            milliseconds: null,
             confidence: result[0].confidence,
           });
         }

@@ -266,6 +266,28 @@ const NEVER_ENDS_A_NAME = new Set([
   "have", "had", "do", "does", "did", "will", "would", "can", "could",
 ]);
 
+// Apple's speech engine writes "chapter 3, verse 3" as the one number "33".
+// Anthony's iPad log, 2026-10-31: "Maleko 33". A run of digits that is too
+// big to be a chapter is split into chapter and verse, but ONLY when exactly
+// one split works. "Malachi 33" can only be 3 and 3. "Genesis 112" could be
+// 11 and 2 or 1 and 12, and a guess there is a wrong verse on the screen, so
+// it returns nothing. Books of one chapter are left out, because "Obadiah 12"
+// is verse 12.
+export function splitRun(digits, chapters) {
+  if (!/^\d{2,}$/.test(digits) || chapters < 2) return null;
+  const fits = [];
+  for (let cut = 1; cut < digits.length; cut += 1) {
+    const chapter = Number.parseInt(digits.slice(0, cut), 10);
+    const rest = digits.slice(cut);
+    if (rest.startsWith("0")) continue;
+    const verse = Number.parseInt(rest, 10);
+    if (chapter >= 1 && chapter <= chapters && verse >= 1) {
+      fits.push({ chapter, verse });
+    }
+  }
+  return fits.length === 1 ? fits[0] : null;
+}
+
 export function findBook(words, upTo) {
   const results = [];
 
@@ -360,6 +382,18 @@ export function hearReference(text) {
       };
     }
 
+    if (chapter.value > best.book.chapters) {
+      const run = splitRun(words[at], best.book.chapters);
+      if (run) {
+        return {
+          book: best.book.name,
+          chapter: run.chapter,
+          verse: run.verse,
+          confidence: Number(best.score.toFixed(3)),
+          heardAs: best.candidate,
+        };
+      }
+    }
     if (chapter.value < 1 || chapter.value > best.book.chapters) continue;
 
     // A verse, if one follows. "chapter 3 verse 5", or just "3 5". Chrome's

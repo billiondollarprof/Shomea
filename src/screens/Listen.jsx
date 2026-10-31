@@ -464,13 +464,16 @@ export default function Listen() {
 
   const heard = lines.filter((line) => !line.silent && !line.error && !line.note);
   const failed = lines.filter((line) => line.error);
+  // Chrome's lines carry no time (see useBrowserEars.js), so they are left
+  // out of the average and not counted as zero.
+  const timed = heard.filter((line) => line.milliseconds != null);
   const averageMs =
-    heard.length > 0
+    timed.length > 0
       ? Math.round(
-          heard.reduce((total, line) => total + (line.milliseconds || 0), 0) /
-            heard.length,
+          timed.reduce((total, line) => total + line.milliseconds, 0) /
+            timed.length,
         )
-      : 0;
+      : null;
 
   // Keep the newest line in view without yanking the page while reading.
   const tailRef = useRef(null);
@@ -748,7 +751,9 @@ export default function Listen() {
             <span className="tally-word">pieces</span>
           </div>
           <div className="tally">
-            <span className="tally-number">{averageMs}ms</span>
+            <span className="tally-number">
+              {averageMs === null ? "n/a" : `${averageMs}ms`}
+            </span>
             <span className="tally-word">each, on average</span>
           </div>
           <div className="tally">
@@ -779,7 +784,7 @@ export default function Listen() {
                         ? line.note
                         : line.text || "(heard nothing)"}
                   </span>
-                  {!line.error && !line.note ? (
+                  {!line.error && !line.note && line.milliseconds != null ? (
                     <span className="said-ms">{line.milliseconds}ms</span>
                   ) : null}
                   {line.screen ? (

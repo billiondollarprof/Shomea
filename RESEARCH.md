@@ -907,3 +907,34 @@ the plan never trusts a browser's name.
 **Still unproved:** whether an installed Chrome app (a PWA) keeps the
 microphone and this engine, on Android and on Windows. No source confirms
 it. The first time the app is installed, test it before trusting it.
+
+### Chrome on an iPad is Apple's engine, not Google's. Found 2026-10-31.
+
+Anthony ran Automatic on his iPad in Chrome and it heard much worse than
+his Android phone did. The log says why:
+
+    Device: Mozilla/5.0 (iPad; CPU OS 18_7_1 ...) CriOS/157.0 ... Safari/604.1
+
+`CriOS` is Chrome's name on iOS. **Apple requires every browser on an iPad
+or iPhone to use Apple's own engine underneath**, so Chrome there has Chrome's
+buttons and Apple's hearing. The app asked for "Chrome's ears", got Apple's,
+and could not tell, because the call exists and does not fail.
+
+What Apple's engine produced from his pastor's voice:
+
+| Said | Written |
+|---|---|
+| Malachi 3:3 | "Maleko 33" |
+| Malachi 4:4 | "Malachi for four" |
+| Ecclesiastes 7:7 and 7:8 | "Ecclesiastes several that eats" |
+| Philippians 1:1 | "Philip yours now this one" |
+
+Two of those carry a verse. "Maleko 33" is now read as Malachi 3:3, because
+the sound encoder already gave "Maleko" the same key as Malachi and the only
+fault was the run-together "33". **"Malachi for four" is not read**, and that
+is deliberate: "for" is one of the commonest words there is, and turning it
+into a 4 risks a wrong verse. See CURRENT.md, open questions.
+
+**The time column was wrong for Chrome.** It showed 8 to 32 seconds, which was
+the pause between sentences and not a delay. Chrome cannot say when speech
+began, so the time is now "n/a".

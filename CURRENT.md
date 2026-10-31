@@ -104,6 +104,12 @@ words, with the date. It comes off only when it is built and checked.
   A refused microphone stops it and does not switch. Moonshine loads in the
   background while Chrome is hearing. Every switch is a NOTE line in the
   log. Walked through with a pretend browser in all five cases.
+  **2026-10-31, his iPad:** Chrome on an iPad uses Apple's hearing, which
+  heard his pastor much worse than Google's does on his Android. See
+  `RESEARCH.md` section 10. **Open question for him, not decided:** on an
+  iPad or iPhone should Automatic use Moonshine instead of Apple's hearing?
+  And should "for" and "to" be read as 4 and 2 right after a book name
+  ("Malachi for four")? That one trades a missed verse against a wrong one.
   **Not proved on real hardware:** the switch on his phone, and whether an
   installed app (PWA) keeps the microphone and Chrome's engine. There is no
   manifest or service worker yet, so there is no PWA to test. This replaces

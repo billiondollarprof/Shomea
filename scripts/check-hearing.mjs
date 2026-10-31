@@ -39,6 +39,11 @@ const SHOULD_FIND = [
   // The same colon with a numbered book and with words around it.
   ["1 John 4:8", "1 John", 4, 8],
   ["turn with me to Ephesians 2:8", "Ephesians", 2, 8],
+  // Real, from Chrome on Anthony's iPad (Apple's engine), 2026-10-31. It
+  // writes "3, 3" as the one number "33".
+  ["Maleko 33", "Malachi", 3, 3],
+  ["Malachi 44", "Malachi", 4, 4],
+  ["turn to Ephesians 28", "Ephesians", 2, 8],
   // The numbered books.
   ["first John chapter 4 verse 8", "1 John", 4, 8],
   ["second Timothy chapter 3 verse 16", "2 Timothy", 3, 16],
@@ -63,6 +68,13 @@ const SHOULD_IGNORE = [
   "and the angels spoke saying",
   // "psalm is" sounds like "Psalms", and "one" follows it. Preaching.
   "verse nine of that psalm is one I love",
+  // Two ways to split 112, so a guess would be a wrong verse. Nothing.
+  "Genesis 112",
+  // Too big for any chapter and no single way to split it.
+  "Malachi 99",
+  // From the same iPad log. Words Apple heard badly: no number to find.
+  "Ecclesiastes several that eats",
+  "Philip yours now this one",
   // A time of day has a colon and is not a verse.
   "we start at 10:30 tomorrow",
   "(heard nothing)",
