@@ -65,6 +65,19 @@ words, with the date. It comes off only when it is built and checked.
   **Built as a third choice on `/dev` so it can be measured. Nothing was
   removed.** Swapping the pipeline is his decision and it waits for him
   and for a real measurement. `RESEARCH.md` section 10.
+- **2026-10-31. Moonshine does not catch numbered books.** "the moonshine
+  does not hear those Bible verses that start with numbers like 1 Peter,
+  1 John, 2 Peter, 2 John, 3 John... I tried. It was hearing nothing."
+  His iPad log: Moonshine beat Apple's hearing clearly (Philippians 2:4,
+  Ecclesiastes 4:4, Obadiah 1:1, Titus 2:2 from "Titles", John 3:1).
+  **Cause not proven.** The code shows the audio is cut into fixed 5 second
+  pieces on a clock, with 1 second of overlap, whether or not anyone is
+  mid-word (`useMicrophone.js`). A phrase that starts "first John..." can
+  lose its first word at a cut. The VAD (cutting at pauses instead)
+  planned in `RESEARCH.md` section 2 was never built.
+  **DANGER seen in that log:** "John three verse one" opened John 3:1. If he
+  said "1 John 3:1", the "1" was lost and the WRONG verse is on the screen.
+  **Waiting on him:** the list of what he said, in order, to match the log.
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
   with nobody choosing. `NOW.md` step 2.
 - **2026-09-16. Read the logs remotely**, so a problem at church can be
