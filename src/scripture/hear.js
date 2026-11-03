@@ -293,6 +293,12 @@ export function findBook(words, upTo) {
 
   if (NEVER_ENDS_A_NAME.has(words[upTo - 1])) return results;
 
+  // A number is never the last word of a book's name. Without this, "Def Jam
+  // 1:2" matched the window "jam 1" to James (the sound encoder throws digits
+  // away), took the NEXT number as the chapter, and opened James 2 instead of
+  // James 1:2. Anthony's phone, 2026-11-03. "Obadiah 2:1" did the same.
+  if (asNumber(words[upTo - 1]) !== null) return results;
+
   for (let length = MOST_WORDS_IN_A_NAME; length >= 1; length -= 1) {
     const from = upTo - length;
     if (from < 0) continue;
@@ -403,7 +409,9 @@ export function hearReference(text) {
     let after = at + chapter.used;
     while (
       after < words.length &&
-      ["verse", "verses", "number", "numbers"].includes(words[after])
+      // "best" is how both engines hear "verse": "Some fifty-five, best one"
+      // and "Malachi 4 best man", Anthony's phone, 2026-11-03.
+      ["verse", "verses", "number", "numbers", "best"].includes(words[after])
     ) {
       after += 1;
     }

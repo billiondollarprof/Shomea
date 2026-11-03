@@ -45,7 +45,10 @@
 export const ORDINALS = {
   1: ["first", "1st", "one", "1", "i"],
   2: ["second", "2nd", "two", "2", "ii"],
-  3: ["third", "3rd", "three", "3", "iii"],
+  // "Dead" and "Ted" are Moonshine's hearing of "third", from Anthony's
+  // phone, 2026-11-03: "Dead John 1 verse 2" was 3 John 1:2, and without
+  // this it opened the Gospel of John, the wrong verse.
+  3: ["third", "3rd", "three", "3", "iii", "dead", "ted"],
 };
 
 // ---------------------------------------------------------------------------
@@ -94,7 +97,8 @@ export const BOOKS = [
   { name: "Obadiah", stem: "obadiah", chapters: 1, heard: ["obadiah"] },
   { name: "Jonah", stem: "jonah", chapters: 4, heard: ["jonah", "jona"] },
   { name: "Micah", stem: "micah", chapters: 7, heard: ["micah", "mica"] },
-  { name: "Nahum", stem: "nahum", chapters: 3, heard: ["nahum", "name"] },
+  // "Now home" is from Chrome on Anthony's phone, 2026-11-03.
+  { name: "Nahum", stem: "nahum", chapters: 3, heard: ["nahum", "name", "now home"] },
   { name: "Habakkuk", stem: "habakkuk", chapters: 3, heard: ["habakkuk", "habakuk"] },
   { name: "Zephaniah", stem: "zephaniah", chapters: 3, heard: ["zephaniah"] },
   { name: "Haggai", stem: "haggai", chapters: 2, heard: ["haggai", "hagai"] },
@@ -124,13 +128,15 @@ export const BOOKS = [
   { name: "Titus", stem: "titus", chapters: 3, heard: ["titus", "diters", "like toast", "toast", "tightest"] },
   { name: "Philemon", stem: "philemon", chapters: 1, heard: ["philemon", "philemen"] },
   { name: "Hebrews", stem: "hebrews", chapters: 13, heard: ["hebrews", "he bruise"] },
-  { name: "James", stem: "james", chapters: 5, heard: ["james"] },
+  // "Def Jam" is from Chrome on Anthony's phone, 2026-11-03.
+  { name: "James", stem: "james", chapters: 5, heard: ["james", "def jam"] },
   { name: "1 Peter", number: 1, stem: "peter", chapters: 5, heard: ["peter"] },
   { name: "2 Peter", number: 2, stem: "peter", chapters: 3, heard: ["peter"] },
   { name: "1 John", number: 1, stem: "john", chapters: 5, heard: ["john"] },
   { name: "2 John", number: 2, stem: "john", chapters: 1, heard: ["john"] },
   { name: "3 John", number: 3, stem: "john", chapters: 1, heard: ["john"] },
-  { name: "Jude", stem: "jude", chapters: 1, heard: ["jude", "jewed"] },
+  // "Dude" is from Chrome on Anthony's phone, 2026-11-03.
+  { name: "Jude", stem: "jude", chapters: 1, heard: ["jude", "jewed", "dude"] },
   { name: "Revelation", stem: "revelation", chapters: 22, heard: ["revelation", "revelations"] },
 ];
 

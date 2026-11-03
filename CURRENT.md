@@ -78,6 +78,13 @@ words, with the date. It comes off only when it is built and checked.
   **DANGER seen in that log:** "John three verse one" opened John 3:1. If he
   said "1 John 3:1", the "1" was lost and the WRONG verse is on the screen.
   **Waiting on him:** the list of what he said, in order, to match the log.
+  **2026-11-03, two more logs (Moonshine and Automatic, Android).** Found and
+  fixed: a number could be taken into the book's name ("Def Jam 1:2" became
+  James 2, chapter and verse swapped); "Dead John 1 verse 2" opened John
+  instead of 3 John; "dude" (Jude), "def jam" (James), "now home" (Nahum) and
+  "best" (verse) are now known mishearings. **Still lost, deliberately:**
+  "Some fifty-five, best one" is Psalm 55:1 but "some" is too common a word
+  to trust. **Still open:** "John three verse one" may be 1 John 3:1.
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
   with nobody choosing. `NOW.md` step 2.
 - **2026-09-16. Read the logs remotely**, so a problem at church can be

@@ -44,6 +44,14 @@ const SHOULD_FIND = [
   ["Maleko 33", "Malachi", 3, 3],
   ["Malachi 44", "Malachi", 4, 4],
   ["turn to Ephesians 28", "Ephesians", 2, 8],
+  // Real, from Anthony's phone, 2026-11-03. Chrome and Moonshine.
+  ["Def Jam 1:2", "James", 1, 2],
+  ["dude Chapter 1 Verse 3", "Jude", 1, 3],
+  ["Dead John 1 verse 2.", "3 John", 1, 2],
+  ["Malachi 4 best one", "Malachi", 4, 1],
+  ["John 33", "John", 3, 3],
+  ["1st Timothy 2:1", "1 Timothy", 2, 1],
+  ["songs of Solomon 2:1", "Song of Solomon", 2, 1],
   // The numbered books.
   ["first John chapter 4 verse 8", "1 John", 4, 8],
   ["second Timothy chapter 3 verse 16", "2 Timothy", 3, 16],
@@ -75,6 +83,15 @@ const SHOULD_IGNORE = [
   // From the same iPad log. Words Apple heard badly: no number to find.
   "Ecclesiastes several that eats",
   "Philip yours now this one",
+  // The number must not be taken into the book's name. There is no chapter 2
+  // of Obadiah, and "obadiah 2" used to be read as Obadiah 1.
+  "obadiah 2:1",
+  // Nahum has 3 chapters.
+  "nahum 4",
+  // "jam" sounds like James and "dead" sounds like "third". Neither is a
+  // reference when it is only a word in a sentence.
+  "we sat in a traffic jam 4 hours",
+  "the dead John 3 times",
   // A time of day has a colon and is not a verse.
   "we start at 10:30 tomorrow",
   "(heard nothing)",
