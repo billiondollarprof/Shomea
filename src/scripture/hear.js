@@ -260,6 +260,10 @@ function scoreAgainst(candidate, book) {
 // "one", and "psalm is" sounds like "Psalms", so it opened Psalms 1. A
 // sentence that runs "name, small word, number" is somebody talking, not a
 // reference. Found 2026-10-30 by scripts/check-memory.mjs.
+const BETWEEN_NAME_AND_NUMBER = new Set([
+  "chapter", "chapters", "verse", "verses", "number",
+]);
+
 const NEVER_ENDS_A_NAME = new Set([
   "is", "was", "are", "were", "be", "been", "am", "i", "you", "he", "she",
   "it", "we", "they", "my", "your", "his", "her", "our", "their", "has",
@@ -288,8 +292,22 @@ export function splitRun(digits, chapters) {
   return fits.length === 1 ? fits[0] : null;
 }
 
-export function findBook(words, upTo) {
+export function findBook(words, requestedUpTo) {
   const results = [];
+
+  // Look back from BEFORE any "chapter" or "verse" sitting between the name
+  // and the number. They are not part of the name, and they used up one of
+  // the three words looked at: "Song of Solomon chapter two" lost its "Song"
+  // and matched nothing. Found 2026-11-03 by scripts/check-scoring.mjs.
+  //
+  // ONLY these words are skipped, and not every filler word. The first try
+  // skipped all of them, which let "psalm is one" and "philip yours now this
+  // one" back in, because "is" and "this" were skipped as well. "Numbers" is
+  // a book and is never skipped.
+  let upTo = requestedUpTo;
+  while (upTo > 0 && BETWEEN_NAME_AND_NUMBER.has(words[upTo - 1])) {
+    upTo -= 1;
+  }
 
   if (NEVER_ENDS_A_NAME.has(words[upTo - 1])) return results;
 

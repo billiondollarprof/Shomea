@@ -988,3 +988,23 @@ h3,
   line-height: 1.15;
   color: var(--wine-text);
 }
+
+/* The list to read aloud on /dev. Large and well spaced, because it is read
+   from arm's length while talking. */
+.reading-summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.reading-list {
+  margin: 12px 0 0;
+  padding-left: 1.6em;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.reading-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--edge-soft);
+}

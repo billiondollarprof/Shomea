@@ -26,6 +26,7 @@
 //   4. The controls
 //   5. What it heard
 //   6. Getting the log off the phone
+//   7. The list to read aloud
 //
 // TWO COMPLETELY DIFFERENT PATHS THROUGH THIS SCREEN
 // --------------------------------------------------
@@ -51,6 +52,7 @@ import { chromeIsUsable, afterFailure } from "../listening/engine.js";
 import { useMicrophone } from "../listening/useMicrophone.js";
 import { useTranscriber } from "../listening/useTranscriber.js";
 import { understand, startingScreen, versionName } from "../scripture/memory.js";
+import { READING_LIST } from "../shared/readingList.js";
 import {
   useBrowserEars,
   askAboutLanguages,
@@ -822,6 +824,25 @@ export default function Listen() {
           nothing has to be read off a screenshot. Listening with:{" "}
           {modelName(modelId)}.
         </p>
+      </section>
+
+      {/* --- 7. The list to read aloud ------------------------------------ */}
+
+      <section className="panel">
+        <details>
+          <summary className="reading-summary">The list to read aloud</summary>
+          <p className="panel-intro">
+            Start listening, then read these out in order. Say each line the
+            way you would from the pulpit and wait about two seconds before the
+            next one. Do not skip any, even the ones that are not a verse.
+            Then send the log, and it can be marked.
+          </p>
+          <ol className="reading-list">
+            {READING_LIST.map((item) => (
+              <li key={item.say}>{item.say}</li>
+            ))}
+          </ol>
+        </details>
       </section>
     </main>
   );

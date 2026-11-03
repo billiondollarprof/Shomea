@@ -85,6 +85,13 @@ words, with the date. It comes off only when it is built and checked.
   "best" (verse) are now known mishearings. **Still lost, deliberately:**
   "Some fifty-five, best one" is Psalm 55:1 but "some" is too common a word
   to trust. **Still open:** "John three verse one" may be 1 John 3:1.
+- **2026-11-03. A list to read aloud, and a score.** Built. `/dev` has a
+  folded section at the bottom, "The list to read aloud": 33 lines, 27 verses
+  and 6 lines of ordinary preaching that must open nothing. Read it with the
+  app listening, send the log, and I run `node scripts/score-log.mjs` on it.
+  It reports shown correctly, missed, and SHOWN WRONGLY, which matters most.
+  An old log can be scored again after every fix. CI checks that every line
+  on the list is understood when heard perfectly.
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
   with nobody choosing. `NOW.md` step 2.
 - **2026-09-16. Read the logs remotely**, so a problem at church can be

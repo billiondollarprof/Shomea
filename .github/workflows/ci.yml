@@ -116,6 +116,12 @@ jobs:
       - name: Does it pick the right ears
         run: node scripts/check-engine.mjs
 
+      # The list read aloud in a listening test, and the scorer that marks
+      # it. Proves every line on the list is understood when heard perfectly,
+      # so a poor score is the app's fault and never the list's.
+      - name: Is the reading list fair, and does the scorer count honestly
+        run: node scripts/check-scoring.mjs
+
   # -------------------------------------------------------------------------
   # 2. The house rules
   # -------------------------------------------------------------------------
