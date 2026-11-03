@@ -70,5 +70,8 @@ check("notes and empty lines are not lines", score.lines, 0);
 score = scoreLog("14:29:22 |   n/a |  0.000 | Genesis 1:1   [screen: opened Genesis 1:1]", READING_LIST);
 check("the screen note on the end is ignored", [score.lines, score.right], [1, 1]);
 
+score = scoreLog("14:29:22 |   n/a |  0.000 | Genesis 1:1   [phrase 2.4s, room 0.006]   [screen: opened Genesis 1:1]", READING_LIST);
+check("the phrase length and room notes are ignored too", [score.lines, score.right], [1, 1]);
+
 console.log(`\n${passed} passed, ${failed} failed.`);
 process.exit(failed ? 1 : 0);

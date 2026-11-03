@@ -1,7 +1,7 @@
 // src/listening/useMicrophone.js
 //
-// THE EAR. It opens the microphone, cuts the sound into pieces, and hands
-// each piece to whoever asked for it.
+// THE EAR. It opens the microphone, cuts the sound into phrases at the
+// pauses, and hands each phrase to whoever asked for it.
 //
 // Sample rate
 // -----------
@@ -26,30 +26,27 @@
 //
 // Sections
 // --------
-//   1. The settings that shape a piece of audio
+//   1. The settings that shape the audio
 //   2. Opening and closing
-//   3. Cutting the sound into pieces
+//   3. Cutting the sound into phrases
+//
+// Where the cutting happens
+// -------------------------
+// Not here. It is in segmenter.js, which is plain code with its own tests.
+// This file only feeds it sound and passes on what comes out. The first
+// version cut the sound into fixed 5 second pieces on a clock, and that
+// clipped the first word of phrases like "First John". Stopping listening
+// throws away a phrase that was half said, on purpose: it would otherwise
+// arrive after the other engine had taken over.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { makeSegmenter } from "./segmenter.js";
 
 // ---------------------------------------------------------------------------
-// 1. The settings that shape a piece of audio
+// 1. The settings that shape the audio
 // ---------------------------------------------------------------------------
 
 const WANTED_RATE = 16000;
-
-// How much audio goes to the model at once. Long enough to hold a whole
-// spoken reference like "turn to Ephesians chapter two verse eight", short
-// enough that the verse is not late.
-const PIECE_SECONDS = 5;
-
-// A little of the previous piece is kept at the front of the next one, so a
-// reference spoken across the join is not cut in half.
-const OVERLAP_SECONDS = 1;
-
-// Below this loudness the piece is treated as silence and never sent. It
-// saves the model a great deal of work during prayer, music and pauses.
-const SILENCE_FLOOR = 0.012;
 
 // ---------------------------------------------------------------------------
 // 2. Opening and closing
@@ -65,8 +62,7 @@ export function useMicrophone({ onPiece }) {
   const contextRef = useRef(null);
   const nodeRef = useRef(null);
   const sourceRef = useRef(null);
-  const bufferRef = useRef([]);
-  const heldRef = useRef(0);
+  const segmenterRef = useRef(null);
   const onPieceRef = useRef(onPiece);
 
   useEffect(() => {
@@ -91,8 +87,7 @@ export function useMicrophone({ onPiece }) {
       contextRef.current.close().catch(() => {});
       contextRef.current = null;
     }
-    bufferRef.current = [];
-    heldRef.current = 0;
+    segmenterRef.current = null;
     setLevel(0);
     setListening(false);
   }, []);
@@ -129,50 +124,25 @@ export function useMicrophone({ onPiece }) {
       // 3. Cutting the sound into pieces
       // ---------------------------------------------------------------------
 
-      const wanted = Math.round(PIECE_SECONDS * context.sampleRate);
-      const keep = Math.round(OVERLAP_SECONDS * context.sampleRate);
+      segmenterRef.current = makeSegmenter({ rate: context.sampleRate });
 
       node.onaudioprocess = (event) => {
         const incoming = event.inputBuffer.getChannelData(0);
 
-        // Copy, because the browser reuses this buffer on the next tick.
-        bufferRef.current.push(new Float32Array(incoming));
-        heldRef.current += incoming.length;
+        // Copy, because the browser reuses this buffer on the next tick and
+        // the segmenter keeps slices of what it is given.
+        const copy = new Float32Array(incoming);
 
         // Show the level, so somebody can see it is hearing them.
         let sum = 0;
-        for (let i = 0; i < incoming.length; i += 1) sum += incoming[i] * incoming[i];
-        const rms = Math.sqrt(sum / incoming.length);
+        for (let i = 0; i < copy.length; i += 1) sum += copy[i] * copy[i];
+        const rms = Math.sqrt(sum / copy.length);
         setLevel(Math.min(1, rms * 4));
 
-        if (heldRef.current < wanted) return;
-
-        // Flatten what we are holding into one run of audio.
-        const piece = new Float32Array(heldRef.current);
-        let at = 0;
-        bufferRef.current.forEach((chunk) => {
-          piece.set(chunk, at);
-          at += chunk.length;
+        if (!segmenterRef.current) return;
+        segmenterRef.current.push(copy).forEach((phrase) => {
+          if (onPieceRef.current) onPieceRef.current(phrase);
         });
-
-        // Keep the tail for the next piece, drop the rest.
-        const tail = piece.slice(Math.max(0, piece.length - keep));
-        bufferRef.current = [tail];
-        heldRef.current = tail.length;
-
-        // How loud was this piece overall.
-        let pieceSum = 0;
-        for (let i = 0; i < piece.length; i += 1) pieceSum += piece[i] * piece[i];
-        const pieceRms = Math.sqrt(pieceSum / piece.length);
-
-        if (onPieceRef.current) {
-          onPieceRef.current({
-            audio: piece,
-            rms: pieceRms,
-            silent: pieceRms < SILENCE_FLOOR,
-            seconds: piece.length / context.sampleRate,
-          });
-        }
       };
 
       source.connect(node);

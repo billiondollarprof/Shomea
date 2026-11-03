@@ -71,6 +71,15 @@ function clockTime(stamp) {
   return `${twoDigits(when.getHours())}:${twoDigits(when.getMinutes())}:${twoDigits(when.getSeconds())}`;
 }
 
+// How long the phrase was and how loud the room was, when the segmenter said.
+// scoreLog.js strips a trailing "[...]" from a line before reading it, so this
+// never changes what a log scores.
+function heardAbout(line) {
+  if (line.seconds == null) return "";
+  const room = line.room == null ? "" : `, room ${line.room.toFixed(3)}`;
+  return `   [phrase ${line.seconds.toFixed(1)}s${room}]`;
+}
+
 export function asText(lines, about) {
   const head = [
     "SHOMEA LISTENING LOG",
@@ -101,7 +110,7 @@ export function asText(lines, about) {
     }
     const took =
       line.milliseconds == null ? "  n/a" : `${String(line.milliseconds).padStart(5)}ms`;
-    return `${clockTime(line.at)} | ${took} |  ${line.rms.toFixed(3)} | ${line.text || "(heard nothing)"}${line.screen ? `   [screen: ${line.screen}]` : ""}`;
+    return `${clockTime(line.at)} | ${took} |  ${line.rms.toFixed(3)} | ${line.text || "(heard nothing)"}${heardAbout(line)}${line.screen ? `   [screen: ${line.screen}]` : ""}`;
   });
 
   const spoken = lines

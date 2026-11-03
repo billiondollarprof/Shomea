@@ -122,6 +122,12 @@ jobs:
       - name: Is the reading list fair, and does the scorer count honestly
         run: node scripts/check-scoring.mjs
 
+      # Cutting the microphone at the pauses. Made-up audio, so it proves the
+      # rules and not the settings. Each rule was proved able to fail by
+      # breaking its setting on purpose.
+      - name: Does it cut at the pauses and never mid-word
+        run: node scripts/check-segmenter.mjs
+
   # -------------------------------------------------------------------------
   # 2. The house rules
   # -------------------------------------------------------------------------

@@ -133,6 +133,10 @@ export default function Listen() {
         text,
         milliseconds,
         rms: sent ? sent.rms : 0,
+        // How long the phrase was and how loud the room was, so a phrase that
+        // came back empty can be told from one that was never cut right.
+        seconds: sent ? sent.seconds : null,
+        room: sent ? sent.room : null,
         silent: false,
         model: modelIdRef.current,
         // Written into the log so a service can be read back afterwards
@@ -160,7 +164,7 @@ export default function Listen() {
   const transcriber = useTranscriber({ onResult, onFailure });
 
   const onPiece = useCallback(
-    ({ audio, rms, silent, seconds }) => {
+    ({ audio, rms, silent, seconds, room, bar }) => {
       // NOTHING IS SENT UNTIL THE MODEL IS READY.
       //
       // This used to send audio the moment the microphone opened, while the
@@ -177,7 +181,7 @@ export default function Listen() {
         addLine({ at: Date.now(), silent: true, rms, model: modelIdRef.current });
         return;
       }
-      transcriber.offer({ audio, modelId: modelIdRef.current, rms, seconds });
+      transcriber.offer({ audio, modelId: modelIdRef.current, rms, seconds, room, bar });
     },
     [addLine, transcriber],
   );

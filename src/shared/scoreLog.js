@@ -45,7 +45,9 @@ export function linesOf(log) {
     .forEach((raw) => {
       const match = LINE.exec(raw);
       if (!match) return;
-      const text = match[1].replace(/\s+\[screen:.*\]\s*$/, "").trim();
+      // Notes in square brackets at the end of a line are bookkeeping, and
+      // there can be two: how long the phrase was, and what the screen did.
+      const text = match[1].replace(/(\s+\[[^\]]*\])+\s*$/, "").trim();
       if (!text) return;
       if (/^(NOTE:|FAILED:|\(nothing said\)|\(heard nothing\))/.test(text)) return;
       found.push(text);

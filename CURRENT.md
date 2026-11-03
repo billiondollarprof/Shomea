@@ -92,6 +92,22 @@ words, with the date. It comes off only when it is built and checked.
   It reports shown correctly, missed, and SHOWN WRONGLY, which matters most.
   An old log can be scored again after every fix. CI checks that every line
   on the list is understood when heard perfectly.
+- **2026-11-03. Cut at the pauses for Moonshine.** Built.
+  `src/listening/segmenter.js`. It waits for speech, keeps 0.3 seconds from
+  before it (so "First" is never clipped), follows it, and cuts after 0.8
+  seconds of quiet. Longest phrase 12 seconds, last second carried over. The
+  room's loudness is learned all the time, so a fan raises the bar by itself,
+  and a steady hum is recognised and ignored. 18 tests, each proved able to
+  fail. Also proved through the real browser audio path with a sound file.
+  The model queue now keeps up to 3 waiting phrases and drops one only after
+  15 seconds, so a quick "the next verse" is not lost.
+  **NOT PROVED, and it is the part that matters:** the test audio is made
+  up. The numbers in `SETTINGS` are a first guess from two logs. His phone
+  gave pieces at 0.014 to 0.042 average loudness, so the speech is quiet, and
+  noise and speech overlap in loudness. If real speech is missed or cut in
+  the wrong place, the next step is a trained voice detector (Silero), and
+  only `segmenter.js` changes. Each log line now ends `[phrase 2.4s, room
+  0.006]` so this can be tuned from real logs.
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
   with nobody choosing. `NOW.md` step 2.
 - **2026-09-16. Read the logs remotely**, so a problem at church can be
