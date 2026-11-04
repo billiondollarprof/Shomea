@@ -1,0 +1,14 @@
+04:42:10 |      - |      - | NOTE: Hearing with Chrome. Started with a signal.
+04:42:10 |      - |      - | NOTE: Hearing with Moonshine. Chrome would not hear on this device, even with the internet on.
+04:42:19 |  1083ms |  0.069 | Then it says one, this one.   [phrase 2.2s, room 0.000]
+04:42:38 |  7522ms |  0.038 | Psalm 23 verse 1. We've been in this house for 20 years. The whole passage of the 3 verse 5 equals, as I should have followed this verse, Psalm 22 verse 1. Isaiah 23 verse 1.   [phrase 12.0s, room 0.000]   [screen: opened Psalms 23:1]
+04:42:40 |  1553ms |  0.030 | And that is the 3 verse 5.   [phrase 3.7s, room 0.000]
+04:42:41 |  1371ms |  0.044 | I want you to turn to your newborn soul.   [phrase 2.9s, room 0.000]
+04:42:51 |  5141ms |  0.025 | May 1st chapter 1 verse 7. Have a good chapter 2 verse 2. When the curse shall taffle you verse 10, Matthew chapter 6 verse 33.   [phrase 8.4s, room 0.000]   [screen: opened Matthew 6:33]
+04:43:02 |  2756ms |  0.032 | Josh chapter 3 verse 16 God did it two times for me and will do it again.   [phrase 5.7s, room 0.000]   [screen: opened Joshua 3:16]
+04:43:17 |  5740ms |  0.036 | Romans chapter 8 verse 28. Philippians chapter 4 verse 13. James chapter 1 verse 2. Over there are verse 3. John verse 3.   [phrase 11.3s, room 0.000]   [screen: opened Romans 8:28]
+04:43:28 |  6264ms |  0.030 | Psalm 50:10-14:14-14:17-14:25:25:17:14:24:24:24:24:24:24:   [phrase 9.7s, room 0.000]   [screen: opened Psalms 50:10]
+04:43:39 |  6030ms |  0.033 | 1 Chronicles 4:10 1 Corinthians 13:4 1 Thessalonians 5:16 We give we three children and two cars.   [phrase 12.0s, room 0.001]   [screen: opened 1 Chronicles 4:10]
+04:43:49 |  5111ms |  0.020 | 2 Corinthians 3, verse 16. 1 Peter 5, verse 7. 2 Peter 3, verse 9.   [phrase 10.6s, room 0.001]   [screen: opened 2 Corinthians 3:16]
+04:43:52 |  2275ms |  0.030 | 1 John 4:8 2 John 6:16   [phrase 5.3s, room 0.001]   [screen: opened 1 John 4:8]
+04:43:59 |  2886ms |  0.039 | 10 John verse 2. Zephaniah chapter 3 verse 17.   [phrase 6.0s, room 0.000]   [screen: opened Zephaniah 3:17]

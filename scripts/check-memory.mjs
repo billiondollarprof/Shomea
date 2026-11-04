@@ -71,6 +71,14 @@ const SERVICES = [
     ],
   },
   {
+    name: "two references in one phrase: the last stays on the screen",
+    steps: [
+      ["Normals chapter 8 verse 28. Philippians chapter 4 verse 13.", "Philippians 4:13 KJV"],
+      ["the previous verse", "Philippians 4:12 KJV"],
+      ["that verse again", "Philippians 4:13 KJV"],
+    ],
+  },
+  {
     name: "it does nothing before anything is showing",
     steps: [
       ["the next verse", " KJV"],

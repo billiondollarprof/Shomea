@@ -292,7 +292,12 @@ export function splitRun(digits, chapters) {
   return fits.length === 1 ? fits[0] : null;
 }
 
-export function findBook(words, requestedUpTo) {
+// `lowest` is the first word that has not already been used by an earlier
+// reference in the same phrase. Nothing before it can be part of this name,
+// and above all it cannot be the number in front of it. "...verse 3. John
+// verse 3" opened 3 John, because the 3 belonged to the verse before and was
+// read as "third" in front of John. Anthony's phone, 2026-11-04.
+export function findBook(words, requestedUpTo, lowest = 0) {
   const results = [];
 
   // Look back from BEFORE any "chapter" or "verse" sitting between the name
@@ -319,7 +324,7 @@ export function findBook(words, requestedUpTo) {
 
   for (let length = MOST_WORDS_IN_A_NAME; length >= 1; length -= 1) {
     const from = upTo - length;
-    if (from < 0) continue;
+    if (from < lowest) continue;
 
     const taken = words.slice(from, upTo);
     const kept = taken.filter(
@@ -339,11 +344,16 @@ export function findBook(words, requestedUpTo) {
 
     // An ordinal right in front is part of the name, not part of it.
     let ordinal = null;
-    if (from > 0) {
+    if (from > lowest) {
       const before = words[from - 1];
-      Object.entries(ORDINALS).forEach(([value, spellings]) => {
-        if (spellings.includes(before)) ordinal = Number.parseInt(value, 10);
-      });
+      // A number straight after "verse" or "chapter" is a verse or a chapter,
+      // never the "first" or "third" in front of a book's name.
+      const isAVerseNumber = BETWEEN_NAME_AND_NUMBER.has(words[from - 2]);
+      if (!isAVerseNumber) {
+        Object.entries(ORDINALS).forEach(([value, spellings]) => {
+          if (spellings.includes(before)) ordinal = Number.parseInt(value, 10);
+        });
+      }
     }
 
     BOOKS.forEach((book) => {
@@ -371,11 +381,26 @@ export function findBook(words, requestedUpTo) {
 // 6. Putting it together
 // ---------------------------------------------------------------------------
 
-export function hearReference(text) {
-  const words = tidy(text).split(" ").filter(Boolean);
-  if (words.length < 2) return null;
+// "verse", and the ways both engines hear it. See the note where it is used.
+const VERSE_MARKERS = ["verse", "verses", "best"];
 
-  for (let at = 1; at < words.length; at += 1) {
+// A stray number can sit between the chapter and the word "verse".
+// "Psalm 23, 3, verse 1" is verse 1. Reading the stray 3 as the verse put the
+// wrong verse on the screen (Anthony's phone, 2026-11-04). It is only looked
+// for when a stray number is there, so "chapter 3 verse 5" is untouched.
+function explicitVerse(words, from) {
+  let at = from;
+  while (at < words.length && /^\d+$/.test(words[at])) at += 1;
+  if (at === from || !VERSE_MARKERS.includes(words[at])) return null;
+  const number = numberAt(words, at + 1);
+  if (!number) return null;
+  return { value: number.value, endsAt: at + 1 + number.used };
+}
+
+// Finds ONE reference at or after position `from`, and says where it ended so
+// the next one can be looked for after it.
+function referenceFrom(words, from) {
+  for (let at = from === 0 ? 1 : from + 1; at < words.length; at += 1) {
     const chapter = numberAt(words, at);
     if (!chapter) continue;
 
@@ -384,7 +409,7 @@ export function hearReference(text) {
     // else it could be.
     const saidVerse = ["verse", "verses"].includes(words[at - 1]);
 
-    const found = findBook(words, at);
+    const found = findBook(words, at, from);
     if (!found.length) continue;
 
     const best = found[0];
@@ -395,14 +420,20 @@ export function hearReference(text) {
     if (best.score < GOOD_ENOUGH) continue;
     if (runnerUp && best.score - runnerUp.score < CLEAR_OF_SECOND) continue;
 
+    const confidence = Number(best.score.toFixed(3));
+    const endsAtChapter = at + chapter.used;
+
     if (saidVerse) {
       if (best.book.chapters !== 1) continue;
       return {
-        book: best.book.name,
-        chapter: 1,
-        verse: chapter.value,
-        confidence: Number(best.score.toFixed(3)),
-        heardAs: best.candidate,
+        reference: {
+          book: best.book.name,
+          chapter: 1,
+          verse: chapter.value,
+          confidence,
+          heardAs: best.candidate,
+        },
+        endsAt: endsAtChapter,
       };
     }
 
@@ -410,11 +441,14 @@ export function hearReference(text) {
       const run = splitRun(words[at], best.book.chapters);
       if (run) {
         return {
-          book: best.book.name,
-          chapter: run.chapter,
-          verse: run.verse,
-          confidence: Number(best.score.toFixed(3)),
-          heardAs: best.candidate,
+          reference: {
+            book: best.book.name,
+            chapter: run.chapter,
+            verse: run.verse,
+            confidence,
+            heardAs: best.candidate,
+          },
+          endsAt: endsAtChapter,
         };
       }
     }
@@ -424,26 +458,83 @@ export function hearReference(text) {
     // "3:5" has already become "3 5" by this point, in tidy().
     // "verse number three" is three words before the number arrives.
     let verse = null;
-    let after = at + chapter.used;
-    while (
-      after < words.length &&
-      // "best" is how both engines hear "verse": "Some fifty-five, best one"
-      // and "Malachi 4 best man", Anthony's phone, 2026-11-03.
-      ["verse", "verses", "number", "numbers", "best"].includes(words[after])
-    ) {
-      after += 1;
+    let endsAt = endsAtChapter;
+    const explicit = explicitVerse(words, endsAtChapter);
+    if (explicit) {
+      verse = explicit.value;
+      endsAt = explicit.endsAt;
+    } else {
+      let after = endsAtChapter;
+      while (
+        after < words.length &&
+        // "best" is how both engines hear "verse": "Some fifty-five, best
+        // one" and "Malachi 4 best man", Anthony's phone, 2026-11-03.
+        ["verse", "verses", "number", "numbers", "best"].includes(words[after])
+      ) {
+        after += 1;
+      }
+      const maybe = numberAt(words, after);
+      if (maybe) {
+        verse = maybe.value;
+        endsAt = after + maybe.used;
+      }
     }
-    const maybe = numberAt(words, after);
-    if (maybe) verse = maybe.value;
 
     return {
-      book: best.book.name,
-      chapter: chapter.value,
-      verse,
-      confidence: Number(best.score.toFixed(3)),
-      heardAs: best.candidate,
+      reference: {
+        book: best.book.name,
+        chapter: chapter.value,
+        verse,
+        confidence,
+        heardAs: best.candidate,
+      },
+      endsAt,
     };
   }
 
   return null;
+}
+
+// A run of this many plain numbers in a row is a model repeating itself, not
+// a person speaking. Moonshine on a long phrase produced "Psalm 50:10-14:14-
+// 14:17-14:25:25:17:14:24:24:24..." and the matcher opened Psalms 50:10.
+// Nobody says six numbers in a row, so the whole line is thrown away.
+const GARBAGE_RUN = 6;
+
+function looksLikeRepeating(words) {
+  let run = 0;
+  for (const word of words) {
+    run = /^\d+$/.test(word) ? run + 1 : 0;
+    if (run >= GARBAGE_RUN) return true;
+  }
+  return false;
+}
+
+// EVERY reference in what was heard, in the order it was said.
+//
+// A phrase can hold more than one, "Romans chapter 8 verse 28. Philippians
+// chapter 4 verse 13", when two come with less than a pause between them.
+// The first version kept only the first and lost the rest. The screen takes
+// them in order, so the LAST one is what stays up, which is what a preacher
+// means by naming another verse. Anthony's logs, 2026-11-04.
+export function hearReferences(text) {
+  const words = tidy(text).split(" ").filter(Boolean);
+  if (words.length < 2 || looksLikeRepeating(words)) return [];
+
+  const found = [];
+  let from = 0;
+  for (;;) {
+    const next = referenceFrom(words, from);
+    if (!next) break;
+    found.push(next.reference);
+    from = next.endsAt;
+  }
+  return found;
+}
+
+// The first one only. Kept because the tests and the first version of the
+// screen's memory were written against it.
+export function hearReference(text) {
+  const all = hearReferences(text);
+  return all.length ? all[0] : null;
 }

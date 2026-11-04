@@ -31,7 +31,7 @@
 // It never touches the network or the app's state. It is a pure function over
 // text, so it can be tested without a browser.
 
-import { hearReference } from "../scripture/hear.js";
+import { hearReferences } from "../scripture/hear.js";
 
 // One line of the log looks like:
 //   14:29:22 |   n/a |  0.000 | Philippians 2:3   [screen: opened ...]
@@ -69,12 +69,12 @@ function label(r) {
 export function openedBy(lines) {
   const opened = [];
   lines.forEach((text) => {
-    const found = hearReference(text);
-    if (!found) return;
-    const next = { book: found.book, chapter: found.chapter, verse: found.verse || 1, text };
-    const last = opened[opened.length - 1];
-    if (last && same(last, next)) return;
-    opened.push(next);
+    hearReferences(text).forEach((found) => {
+      const next = { book: found.book, chapter: found.chapter, verse: found.verse || 1, text };
+      const last = opened[opened.length - 1];
+      if (last && same(last, next)) return;
+      opened.push(next);
+    });
   });
   return opened;
 }

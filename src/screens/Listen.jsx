@@ -342,7 +342,10 @@ export default function Listen() {
     if (verdict.action === "switch") {
       if (verdict.blockMs > 0) a.failures += 1;
       a.blockedUntil = Date.now() + verdict.blockMs;
-      goMoonshine(verdict.why);
+      // The error's own name goes in the log. Anthony's Automatic test on
+      // 2026-11-04 switched to Moonshine in the same second it started, and
+      // the log could not say why.
+      goMoonshine(`${verdict.why} (Chrome said: ${problem.kind || "nothing"})`);
       return;
     }
     onFailure(problem);

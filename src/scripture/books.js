@@ -44,7 +44,10 @@
 
 export const ORDINALS = {
   1: ["first", "1st", "one", "1", "i"],
-  2: ["second", "2nd", "two", "2", "ii"],
+  // "Several" is Moonshine's hearing of "second": "Several Peter chapter
+  // three", Anthony's phone, 2026-11-04. Only a numbered book can use it, so
+  // "several people" is never a reference.
+  2: ["second", "2nd", "two", "2", "ii", "several"],
   // "Dead" and "Ted" are Moonshine's hearing of "third", from Anthony's
   // phone, 2026-11-03: "Dead John 1 verse 2" was 3 John 1:2, and without
   // this it opened the Gospel of John, the wrong verse.
@@ -112,7 +115,9 @@ export const BOOKS = [
   { name: "Luke", stem: "luke", chapters: 24, heard: ["luke", "look"] },
   { name: "John", stem: "john", chapters: 21, heard: ["john", "jon"] },
   { name: "Acts", stem: "acts", chapters: 28, heard: ["acts", "axe"] },
-  { name: "Romans", stem: "romans", chapters: 16, heard: ["romans", "roman"] },
+  // "Normals" is Moonshine's hearing of Romans, from Anthony's phone,
+  // 2026-11-04.
+  { name: "Romans", stem: "romans", chapters: 16, heard: ["romans", "roman", "normals"] },
   { name: "1 Corinthians", number: 1, stem: "corinthians", chapters: 16, heard: ["corinthians", "corinthian"] },
   { name: "2 Corinthians", number: 2, stem: "corinthians", chapters: 13, heard: ["corinthians"] },
   { name: "Galatians", stem: "galatians", chapters: 6, heard: ["galatians", "galations"] },

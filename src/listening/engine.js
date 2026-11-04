@@ -37,6 +37,10 @@
 // each wait, and each wait is longer, so a browser that can never do it
 // costs one quick failure every few minutes and nothing more.
 export const WAITS_BEFORE_TRYING_AGAIN = [
+  // 30 seconds first. The first version waited 2 minutes, and Anthony's
+  // Automatic test on 2026-11-04 failed once at the very start and then spent
+  // the whole session on Moonshine. One failure may be a blip.
+  30 * 1000,
   2 * 60 * 1000,
   5 * 60 * 1000,
   15 * 60 * 1000,

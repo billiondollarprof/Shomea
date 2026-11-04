@@ -43,7 +43,7 @@
 //   4. The commands that move around
 
 import { BOOKS } from "./books.js";
-import { hearReference, numberAt, tidy } from "./hear.js";
+import { hearReferences, numberAt, tidy } from "./hear.js";
 
 // ---------------------------------------------------------------------------
 // 1. The versions, and what each is called out loud
@@ -149,14 +149,27 @@ export function understand(text, screen, options = {}) {
   if (!whole) return stay(screen, "heard nothing");
   const words = whole.split(" ");
 
-  const reference = hearReference(text);
+  const references = hearReferences(text);
   const version = findVersion(text);
 
   // A named verse is enough on its own. It is the first trigger in
   // COMMANDS.md section 5, and a version said alongside it ("what NLT calls
   // it in Proverbs 5:10") comes along for free.
-  if (reference) {
-    return goTo(screen, reference, version);
+  //
+  // A phrase can name more than one, when two arrive with less than a pause
+  // between them. They are taken in the order said, so the last is what stays
+  // on the screen. Naming another verse is what clears the last one.
+  if (references.length) {
+    let now = screen;
+    let changed = false;
+    const did = [];
+    references.forEach((reference) => {
+      const step = goTo(now, reference, version);
+      now = step.screen;
+      changed = changed || step.changed;
+      did.push(step.did);
+    });
+    return { screen: now, changed, did: did.join(", then ") };
   }
 
   // Everything below is a command with no reference, so it has to look like

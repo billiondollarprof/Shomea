@@ -108,6 +108,32 @@ words, with the date. It comes off only when it is built and checked.
   the wrong place, the next step is a trained voice detector (Silero), and
   only `segmenter.js` changes. Each log line now ends `[phrase 2.4s, room
   0.006]` so this can be tuned from real logs.
+- **2026-11-04. FIRST REAL SCORES, reading list, Android.** Saved in `logs/`
+  so they can be scored again: `node scripts/score-log.mjs logs/<file>`.
+  **Moonshine Base: 11 of 28 right (39%), 5 shown wrongly.**
+  **Automatic: 12 of 28 right (43%), 4 shown wrongly.** The Automatic run was
+  Moonshine the whole time, because Chrome failed in the same second it
+  started (reason not written down, now it is). So **Chrome has not been
+  scored yet.** Re-run Automatic and read the list again.
+  With the first matcher the scores were 25% and 21%: it kept only the first
+  reference in a phrase. It now finds every reference, in order, and the last
+  stays on the screen. Also fixed from these logs: a stray number beating
+  "verse N" ("Psalm 23, 3, verse 1" opened 23:3), a model repeating itself
+  ("Psalm 50:10-14:14-14...") opening a verse, a number after "verse" being
+  read as "third" in front of the next book (opened 3 John), and the
+  mishearings "Normals" (Romans) and "Several" (Second). The first Chrome
+  retry is now 30 seconds, not 2 minutes. 65 matcher tests.
+  **Wrong verses still shown, sorted by cause:** chapter with no verse opens
+  verse 1 (3 of 9: Isaiah 50:1, 1 Chronicles 4:1, 2 Peter 3:1); the engine
+  heard the wrong numbers (2 Timothy 2:14, 2 Corinthians 3:16); the engine
+  made up text in a 12 second phrase (Psalms 22:1, Isaiah 23:1); "First" was
+  dropped (John 4:8 instead of 1 John 4:8); "Josh" opened Joshua when it was
+  John 3:16.
+  **OPEN, HIS DECISIONS:** (1) a chapter heard with no verse: show verse 1, or
+  show nothing and wait for the verse? (2) is "Josh" ever how his pastor says
+  Joshua? (3) he reads faster than 0.8 seconds between lines, so phrases of up
+  to 12 seconds form, and the longest ones are where Moonshine made things
+  up. Shorten the pause or the 12 second limit?
 - **2026-09-16. The model should switch by itself**, Moonshine to Whisper,
   with nobody choosing. `NOW.md` step 2.
 - **2026-09-16. Read the logs remotely**, so a problem at church can be

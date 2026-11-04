@@ -14,7 +14,7 @@
 //
 //     node scripts/check-hearing.mjs
 
-import { hearReference } from "../src/scripture/hear.js";
+import { hearReference, hearReferences } from "../src/scripture/hear.js";
 
 // --- Should find a reference ----------------------------------------------
 const SHOULD_FIND = [
@@ -52,6 +52,12 @@ const SHOULD_FIND = [
   ["John 33", "John", 3, 3],
   ["1st Timothy 2:1", "1 Timothy", 2, 1],
   ["songs of Solomon 2:1", "Song of Solomon", 2, 1],
+  // Real, from Anthony's phone, 2026-11-04.
+  // A stray number between the chapter and "verse" must not become the verse.
+  ["Psalm 23, 3, verse 1.", "Psalms", 23, 1],
+  ["Malakai chapter 3 verse 10", "Malachi", 3, 10],
+  ["Normals chapter 8 verse 28.", "Romans", 8, 28],
+  ["Several Peter chapter three verse nine", "2 Peter", 3, 9],
   // The numbered books.
   ["first John chapter 4 verse 8", "1 John", 4, 8],
   ["second Timothy chapter 3 verse 16", "2 Timothy", 3, 16],
@@ -60,6 +66,44 @@ const SHOULD_FIND = [
   ["third John verse 4", "3 John", 1, 4],
   // Spoken numbers past ten.
   ["Psalm twenty three", "Psalms", 23, null],
+];
+
+// --- Should find SEVERAL, in the order said --------------------------------
+// A phrase can hold more than one when two come with less than a pause
+// between them. All of them are found and the last stays on the screen.
+const SHOULD_FIND_ALL = [
+  // Real, from Anthony's phone, 2026-11-04.
+  [
+    "Normals chapter 8 verse 28. Philippians chapter 4 verse 13.",
+    [["Romans", 8, 28], ["Philippians", 4, 13]],
+  ],
+  [
+    "First Corinthians chapter 13 verse 4. First Thessalonians chapter 5 verse 16. He gave reign through children and took us. Second Timothy 2 verse 14.",
+    [["1 Corinthians", 13, 4], ["1 Thessalonians", 5, 16], ["2 Timothy", 2, 14]],
+  ],
+  [
+    "1 Chronicles 4:10 1 Corinthians 13:4 1 Thessalonians 5:16 We give we three children and two cars.",
+    [["1 Chronicles", 4, 10], ["1 Corinthians", 13, 4], ["1 Thessalonians", 5, 16]],
+  ],
+  [
+    "Romans chapter 8 verse 28. Philippians chapter 4 verse 13. James chapter 1 verse 2.",
+    [["Romans", 8, 28], ["Philippians", 4, 13], ["James", 1, 2]],
+  ],
+  // The 3 after "verse" belongs to James. It is not the "third" in front of
+  // John, and John has 21 chapters, so a bare "John verse 3" is nothing.
+  [
+    "James chapter 1 verse 2. Over there are verse 3. John verse 3.",
+    [["James", 1, 2]],
+  ],
+  // But a real ordinal in the next sentence still counts.
+  [
+    "James chapter 1 verse 2. First John chapter 4 verse 8.",
+    [["James", 1, 2], ["1 John", 4, 8]],
+  ],
+  [
+    "2 Corinthians 3, verse 16. 1 Peter 5, verse 7. 2 Peter 3, verse 9.",
+    [["2 Corinthians", 3, 16], ["1 Peter", 5, 7], ["2 Peter", 3, 9]],
+  ],
 ];
 
 // --- Should find NOTHING --------------------------------------------------
@@ -92,6 +136,11 @@ const SHOULD_IGNORE = [
   // reference when it is only a word in a sentence.
   "we sat in a traffic jam 4 hours",
   "the dead John 3 times",
+  // A model repeating itself. Real, from Moonshine on Anthony's phone,
+  // 2026-11-04. It opened Psalms 50:10.
+  "Psalm 50:10-14:14-14:17-14:25:25:17:14:24:24:24:24:24:24:",
+  // "several" is only an ordinal in front of a numbered book.
+  "several people came and sat in chapter 3",
   // A time of day has a colon and is not a verse.
   "we start at 10:30 tomorrow",
   "(heard nothing)",
@@ -124,9 +173,25 @@ for (const [text, book, chapter, verse] of SHOULD_FIND) {
   }
 }
 
+console.log("\nSHOULD FIND SEVERAL\n");
+for (const [text, wanted] of SHOULD_FIND_ALL) {
+  const got = hearReferences(text).map((r) => [r.book, r.chapter, r.verse]);
+  if (JSON.stringify(got) === JSON.stringify(wanted)) {
+    passed += 1;
+    console.log(`  ok    ${wanted.map((w) => w.join(" ")).join("  then  ")}`);
+  } else {
+    failed += 1;
+    console.log(`  MISS  wanted ${JSON.stringify(wanted)}`);
+    console.log(`        got    ${JSON.stringify(got)}`);
+    console.log(`        from "${text}"`);
+  }
+}
+
 console.log("\nSHOULD FIND NOTHING\n");
 for (const text of SHOULD_IGNORE) {
-  const got = hearReference(text);
+  // The WHOLE line is checked, not just the first reference in it.
+  const everything = hearReferences(text);
+  const got = everything.length ? everything[0] : null;
   if (!got) {
     passed += 1;
     console.log(`  ok    "${text}"`);
